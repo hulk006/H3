@@ -1,0 +1,13 @@
+#filter some file named with follow:
+*.user
+#filter some dir named with follow:
+build/*
+cmake_*/*
+cmake*
+buil
+Data
+bin
+cmake-build-debug
+bin/*
+*.o
+*.exe	
