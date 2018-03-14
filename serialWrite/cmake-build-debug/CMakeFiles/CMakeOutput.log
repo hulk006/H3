@@ -1,0 +1,155 @@
+The system is: Linux - 2.6.35.14-106.fc14.i686 - i686
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: /usr/lib/ccache/cc 
+Build flags: 
+Id flags: 
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
+
+The C compiler identification is GNU, found in "/home/openwrt/CLionProjects/serialWrite/cmake-build-debug/CMakeFiles/3.5.2/CompilerIdC/a.out"
+
+Determining if the C compiler works passed with the following output:
+Change Dir: /home/openwrt/CLionProjects/serialWrite/cmake-build-debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/gmake" "cmTC_62492/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_62492.dir/build.make CMakeFiles/cmTC_62492.dir/build
+gmake[1]: 进入目录“/home/openwrt/CLionProjects/serialWrite/cmake-build-debug/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_62492.dir/testCCompiler.c.o
+/usr/lib/ccache/cc     -o CMakeFiles/cmTC_62492.dir/testCCompiler.c.o   -c /home/openwrt/CLionProjects/serialWrite/cmake-build-debug/CMakeFiles/CMakeTmp/testCCompiler.c
+Linking C executable cmTC_62492
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_62492.dir/link.txt --verbose=1
+/usr/lib/ccache/cc       CMakeFiles/cmTC_62492.dir/testCCompiler.c.o  -o cmTC_62492 
+gmake[1]: 离开目录“/home/openwrt/CLionProjects/serialWrite/cmake-build-debug/CMakeFiles/CMakeTmp”
+
+
+Detecting C compiler ABI info compiled with the following output:
+Change Dir: /home/openwrt/CLionProjects/serialWrite/cmake-build-debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/gmake" "cmTC_b5b8a/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_b5b8a.dir/build.make CMakeFiles/cmTC_b5b8a.dir/build
+gmake[1]: 进入目录“/home/openwrt/CLionProjects/serialWrite/cmake-build-debug/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_b5b8a.dir/CMakeCCompilerABI.c.o
+/usr/lib/ccache/cc     -o CMakeFiles/cmTC_b5b8a.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-3.5/Modules/CMakeCCompilerABI.c
+Linking C executable cmTC_b5b8a
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b5b8a.dir/link.txt --verbose=1
+/usr/lib/ccache/cc      -v CMakeFiles/cmTC_b5b8a.dir/CMakeCCompilerABI.c.o  -o cmTC_b5b8a  
+使用内建 specs。
+COLLECT_GCC=/usr/bin/cc
+COLLECT_LTO_WRAPPER=/usr/libexec/gcc/i686-redhat-linux/4.5.1/lto-wrapper
+目标：i686-redhat-linux
+配置为：../configure --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info --with-bugurl=http://bugzilla.redhat.com/bugzilla --enable-bootstrap --enable-shared --enable-threads=posix --enable-checking=release --with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions --enable-gnu-unique-object --enable-linker-build-id --enable-languages=c,c++,objc,obj-c++,java,fortran,ada,lto --enable-plugin --enable-java-awt=gtk --disable-dssi --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-1.5.0.0/jre --enable-libgcj-multifile --enable-java-maintainer-mode --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --disable-libjava-multilib --with-ppl --with-cloog --with-tune=generic --with-arch=i686 --build=i686-redhat-linux
+线程模型：posix
+gcc 版本 4.5.1 20100924 (Red Hat 4.5.1-4) (GCC) 
+COMPILER_PATH=/usr/libexec/gcc/i686-redhat-linux/4.5.1/:/usr/libexec/gcc/i686-redhat-linux/4.5.1/:/usr/libexec/gcc/i686-redhat-linux/:/usr/lib/gcc/i686-redhat-linux/4.5.1/:/usr/lib/gcc/i686-redhat-linux/
+LIBRARY_PATH=/usr/lib/gcc/i686-redhat-linux/4.5.1/:/usr/lib/gcc/i686-redhat-linux/4.5.1/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_b5b8a' '-mtune=generic' '-march=i686'
+ /usr/libexec/gcc/i686-redhat-linux/4.5.1/collect2 --build-id --no-add-needed --eh-frame-hdr -m elf_i386 --hash-style=gnu -dynamic-linker /lib/ld-linux.so.2 -o cmTC_b5b8a /usr/lib/gcc/i686-redhat-linux/4.5.1/../../../crt1.o /usr/lib/gcc/i686-redhat-linux/4.5.1/../../../crti.o /usr/lib/gcc/i686-redhat-linux/4.5.1/crtbegin.o -L/usr/lib/gcc/i686-redhat-linux/4.5.1 -L/usr/lib/gcc/i686-redhat-linux/4.5.1/../../.. CMakeFiles/cmTC_b5b8a.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/gcc/i686-redhat-linux/4.5.1/crtend.o /usr/lib/gcc/i686-redhat-linux/4.5.1/../../../crtn.o
+gmake[1]: 离开目录“/home/openwrt/CLionProjects/serialWrite/cmake-build-debug/CMakeFiles/CMakeTmp”
+
+
+Parsed C implicit link information from above output:
+  link line regex: [^( *|.*[/\])(ld|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /home/openwrt/CLionProjects/serialWrite/cmake-build-debug/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command:"/usr/bin/gmake" "cmTC_b5b8a/fast"]
+  ignore line: [/usr/bin/gmake -f CMakeFiles/cmTC_b5b8a.dir/build.make CMakeFiles/cmTC_b5b8a.dir/build]
+  ignore line: [gmake[1]: 进入目录“/home/openwrt/CLionProjects/serialWrite/cmake-build-debug/CMakeFiles/CMakeTmp”]
+  ignore line: [Building C object CMakeFiles/cmTC_b5b8a.dir/CMakeCCompilerABI.c.o]
+  ignore line: [/usr/lib/ccache/cc     -o CMakeFiles/cmTC_b5b8a.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-3.5/Modules/CMakeCCompilerABI.c]
+  ignore line: [Linking C executable cmTC_b5b8a]
+  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b5b8a.dir/link.txt --verbose=1]
+  ignore line: [/usr/lib/ccache/cc      -v CMakeFiles/cmTC_b5b8a.dir/CMakeCCompilerABI.c.o  -o cmTC_b5b8a  ]
+  ignore line: [使用内建 specs。]
+  ignore line: [COLLECT_GCC=/usr/bin/cc]
+  ignore line: [COLLECT_LTO_WRAPPER=/usr/libexec/gcc/i686-redhat-linux/4.5.1/lto-wrapper]
+  ignore line: [目标：i686-redhat-linux]
+  ignore line: [配置为：../configure --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info --with-bugurl=http://bugzilla.redhat.com/bugzilla --enable-bootstrap --enable-shared --enable-threads=posix --enable-checking=release --with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions --enable-gnu-unique-object --enable-linker-build-id --enable-languages=c,c++,objc,obj-c++,java,fortran,ada,lto --enable-plugin --enable-java-awt=gtk --disable-dssi --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-1.5.0.0/jre --enable-libgcj-multifile --enable-java-maintainer-mode --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --disable-libjava-multilib --with-ppl --with-cloog --with-tune=generic --with-arch=i686 --build=i686-redhat-linux]
+  ignore line: [线程模型：posix]
+  ignore line: [gcc 版本 4.5.1 20100924 (Red Hat 4.5.1-4) (GCC) ]
+  ignore line: [COMPILER_PATH=/usr/libexec/gcc/i686-redhat-linux/4.5.1/:/usr/libexec/gcc/i686-redhat-linux/4.5.1/:/usr/libexec/gcc/i686-redhat-linux/:/usr/lib/gcc/i686-redhat-linux/4.5.1/:/usr/lib/gcc/i686-redhat-linux/]
+  ignore line: [LIBRARY_PATH=/usr/lib/gcc/i686-redhat-linux/4.5.1/:/usr/lib/gcc/i686-redhat-linux/4.5.1/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_b5b8a' '-mtune=generic' '-march=i686']
+  link line: [ /usr/libexec/gcc/i686-redhat-linux/4.5.1/collect2 --build-id --no-add-needed --eh-frame-hdr -m elf_i386 --hash-style=gnu -dynamic-linker /lib/ld-linux.so.2 -o cmTC_b5b8a /usr/lib/gcc/i686-redhat-linux/4.5.1/../../../crt1.o /usr/lib/gcc/i686-redhat-linux/4.5.1/../../../crti.o /usr/lib/gcc/i686-redhat-linux/4.5.1/crtbegin.o -L/usr/lib/gcc/i686-redhat-linux/4.5.1 -L/usr/lib/gcc/i686-redhat-linux/4.5.1/../../.. CMakeFiles/cmTC_b5b8a.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/gcc/i686-redhat-linux/4.5.1/crtend.o /usr/lib/gcc/i686-redhat-linux/4.5.1/../../../crtn.o]
+    arg [/usr/libexec/gcc/i686-redhat-linux/4.5.1/collect2] ==> ignore
+    arg [--build-id] ==> ignore
+    arg [--no-add-needed] ==> ignore
+    arg [--eh-frame-hdr] ==> ignore
+    arg [-m] ==> ignore
+    arg [elf_i386] ==> ignore
+    arg [--hash-style=gnu] ==> ignore
+    arg [-dynamic-linker] ==> ignore
+    arg [/lib/ld-linux.so.2] ==> ignore
+    arg [-o] ==> ignore
+    arg [cmTC_b5b8a] ==> ignore
+    arg [/usr/lib/gcc/i686-redhat-linux/4.5.1/../../../crt1.o] ==> ignore
+    arg [/usr/lib/gcc/i686-redhat-linux/4.5.1/../../../crti.o] ==> ignore
+    arg [/usr/lib/gcc/i686-redhat-linux/4.5.1/crtbegin.o] ==> ignore
+    arg [-L/usr/lib/gcc/i686-redhat-linux/4.5.1] ==> dir [/usr/lib/gcc/i686-redhat-linux/4.5.1]
+    arg [-L/usr/lib/gcc/i686-redhat-linux/4.5.1/../../..] ==> dir [/usr/lib/gcc/i686-redhat-linux/4.5.1/../../..]
+    arg [CMakeFiles/cmTC_b5b8a.dir/CMakeCCompilerABI.c.o] ==> ignore
+    arg [-lgcc] ==> lib [gcc]
+    arg [--as-needed] ==> ignore
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [--no-as-needed] ==> ignore
+    arg [-lc] ==> lib [c]
+    arg [-lgcc] ==> lib [gcc]
+    arg [--as-needed] ==> ignore
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [--no-as-needed] ==> ignore
+    arg [/usr/lib/gcc/i686-redhat-linux/4.5.1/crtend.o] ==> ignore
+    arg [/usr/lib/gcc/i686-redhat-linux/4.5.1/../../../crtn.o] ==> ignore
+  remove lib [gcc]
+  remove lib [gcc_s]
+  remove lib [gcc]
+  remove lib [gcc_s]
+  collapse library dir [/usr/lib/gcc/i686-redhat-linux/4.5.1] ==> [/usr/lib/gcc/i686-redhat-linux/4.5.1]
+  collapse library dir [/usr/lib/gcc/i686-redhat-linux/4.5.1/../../..] ==> [/usr/lib]
+  implicit libs: [c]
+  implicit dirs: [/usr/lib/gcc/i686-redhat-linux/4.5.1;/usr/lib]
+  implicit fwks: []
+
+
+
+
+Detecting C [-std=c99] compiler features compiled with the following output:
+Change Dir: /home/openwrt/CLionProjects/serialWrite/cmake-build-debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/gmake" "cmTC_95599/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_95599.dir/build.make CMakeFiles/cmTC_95599.dir/build
+gmake[1]: 进入目录“/home/openwrt/CLionProjects/serialWrite/cmake-build-debug/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_95599.dir/feature_tests.c.o
+/usr/lib/ccache/cc    -std=c99 -o CMakeFiles/cmTC_95599.dir/feature_tests.c.o   -c /home/openwrt/CLionProjects/serialWrite/cmake-build-debug/CMakeFiles/feature_tests.c
+Linking C executable cmTC_95599
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_95599.dir/link.txt --verbose=1
+/usr/lib/ccache/cc       CMakeFiles/cmTC_95599.dir/feature_tests.c.o  -o cmTC_95599 
+gmake[1]: 离开目录“/home/openwrt/CLionProjects/serialWrite/cmake-build-debug/CMakeFiles/CMakeTmp”
+
+
+    Feature record: C_FEATURE:1c_function_prototypes
+    Feature record: C_FEATURE:1c_restrict
+    Feature record: C_FEATURE:0c_static_assert
+    Feature record: C_FEATURE:1c_variadic_macros
+
+
+Detecting C [-std=c90] compiler features compiled with the following output:
+Change Dir: /home/openwrt/CLionProjects/serialWrite/cmake-build-debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/gmake" "cmTC_c7341/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_c7341.dir/build.make CMakeFiles/cmTC_c7341.dir/build
+gmake[1]: 进入目录“/home/openwrt/CLionProjects/serialWrite/cmake-build-debug/CMakeFiles/CMakeTmp”
+Building C object CMakeFiles/cmTC_c7341.dir/feature_tests.c.o
+/usr/lib/ccache/cc    -std=c90 -o CMakeFiles/cmTC_c7341.dir/feature_tests.c.o   -c /home/openwrt/CLionProjects/serialWrite/cmake-build-debug/CMakeFiles/feature_tests.c
+Linking C executable cmTC_c7341
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c7341.dir/link.txt --verbose=1
+/usr/lib/ccache/cc       CMakeFiles/cmTC_c7341.dir/feature_tests.c.o  -o cmTC_c7341 
+gmake[1]: 离开目录“/home/openwrt/CLionProjects/serialWrite/cmake-build-debug/CMakeFiles/CMakeTmp”
+
+
+    Feature record: C_FEATURE:1c_function_prototypes
+    Feature record: C_FEATURE:0c_restrict
+    Feature record: C_FEATURE:0c_static_assert
+    Feature record: C_FEATURE:0c_variadic_macros

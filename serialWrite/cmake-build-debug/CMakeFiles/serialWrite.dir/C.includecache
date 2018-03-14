@@ -1,0 +1,32 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/openwrt/CLionProjects/serialWrite/main.c
+sys/types.h
+-
+stdio.h
+-
+fcntl.h
+-
+sys/stat.h
+-
+sys/stat.h
+-
+fcntl.h
+-
+termios.h
+-
+stdio.h
+-
+zconf.h
+-
+stdlib.h
+-
+memory.h
+-
+

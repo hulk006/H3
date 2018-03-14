@@ -1,0 +1,3 @@
+/home/openwrt/CLionProjects/serialWrite/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/openwrt/CLionProjects/serialWrite/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/openwrt/CLionProjects/serialWrite/cmake-build-debug/CMakeFiles/serialWrite.dir
