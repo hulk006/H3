@@ -169,38 +169,40 @@ int SerialSetParity(int fd,int databits,int stopbits,int parity)
  * @param  time_out int 串口等待时间
  * @return  读取buf的长度
 */
-int SerialRead(const int fd,char * p,const int desire_get_len,const int time_out)
+int SerialRead(const int fd,char p[],const int desire_get_len,const int time_out)
 {
-
-    char read_temp[desire_get_len];
-
     struct timeval tv;
     tv.tv_sec = time_out;
     tv.tv_usec = 0;
-    bzero(read_temp,sizeof(read_temp));
-    tcflush(fd, TCIOFLUSH);//清除串口缓存
+    //tcflush(fd, TCIOFLUSH);//清除串口缓存
     fd_set read_fds;
     int nread = 0 ;
-        FD_ZERO(&read_fds);
-        FD_SET(fd,&read_fds);
-        tcflush(fd, TCIOFLUSH);//清除串口缓存
-        puts("select");
-        if(select(fd+1,&read_fds,NULL,NULL,&tv))
+    FD_ZERO(&read_fds);
+    FD_SET(fd,&read_fds);
+    puts("start serial select .......");
+    if(select(fd+1,&read_fds,NULL,NULL,&tv))
+    {
+        Sleep(200);
+        nread = read(fd,p, desire_get_len);
+        if(nread<=0)
         {
-            Sleep(200);
-            nread = read(fd,read_temp, sizeof(read_temp));
-            if(nread<=0)
-            {
-                printf("read get problem!\r\n");
-                return -1;
-            }
+            printf("read get problem!\r\n");
+            return -1;
         }
-        else
+    }
+    else
+    {
+        perror("select():time out");
+    }
+    if(nread>0)
+    {
+        printf("receive buf:");
+        for (int i = 0;i < nread;i ++)
         {
-            perror("select():time out");
+            printf("%x ", p[i]);
         }
-
-    memcpy(p,read_temp, sizeof(read_temp));
+        printf("\n");
+    }
     return nread;
 }
 /**
@@ -211,7 +213,7 @@ int SerialRead(const int fd,char * p,const int desire_get_len,const int time_out
  * @param  time_out int 串口等待时间
  * @return  读取buf的长度
 */
-int SerialReadDataBlock(const int fd,char * p,const int time_out)
+int SerialReadDataBlock(const int fd,char * p,const int desire_get_len,const int time_out)
 {
     int nBytes = 0;
     char read_temp[1024];
@@ -221,7 +223,7 @@ int SerialReadDataBlock(const int fd,char * p,const int time_out)
     fd_set read_fds;
     FD_ZERO(&read_fds);
     FD_SET(fd,&read_fds);
-    tcflush(fd, TCIOFLUSH);//清除串口缓存
+    //tcflush(fd, TCIOFLUSH);//清除串口缓存
     puts("select");
     if(select(fd+1,&read_fds,NULL,NULL,&tv))
     {
@@ -229,25 +231,21 @@ int SerialReadDataBlock(const int fd,char * p,const int time_out)
         while (1)
         {
             int nread = 0;
-            bzero(read_temp,sizeof(read_temp));
-            nread = read(fd, read_temp, sizeof(read_temp));
-            int a=strlen(read_temp);
-            char temp = read_temp[strlen(read_temp)-1];
-            if(temp =='\n')
+            nread = read(fd, p, desire_get_len);
+            int a=strlen(p);
+            char temp = read_temp[strlen(p)-1];
+            if(temp =='\n')//遇到换行符停止
             {
-                strcat(p, read_temp);
                 nBytes += nread;
                 break;
             }
 
             if (nread > 0)
             {
-                strcat(p, read_temp);
                 nBytes += nread;
             }
             else if (nread == 0)
             {
-
                 printf("read finish");
                 break;
             }
@@ -258,6 +256,9 @@ int SerialReadDataBlock(const int fd,char * p,const int time_out)
             }
         }
     }
+
+
+
 
     return nBytes;
 }
@@ -301,18 +302,21 @@ int SerialOpen(const char *serial_name,const int bau)
  * @param  command  类型 char 命令码
  * @return int 1 发送命令成功 -1失败
 */
-int SerialCommand(const int fd,const char *command)
+int SerialCommand(const int fd,const unsigned char *command,const int len)
 {
-    printf("master sending command:");
-    int write_res = write(fd, command, strlen(command));//向串口写数据
+    tcflush(fd, TCIOFLUSH);
+    int write_res = write(fd,command,len);//向串口写数据
+    //tcflush(fd, TCIOFLUSH);
     if (write_res == -1)
     {
         perror(" SerialCommand write error!");
         exit(-1);
     }
-    Sleep(SEND_DELAY_TIME);
-    printf("%s  success",command);
-    return 1;
+    printf("comand send :");
+    for (int i = 0;i < len;i ++)
+        printf("  %x",command[i]);
+    printf("\n");
+    return write_res;
 }
 
 /**

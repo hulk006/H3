@@ -130,8 +130,8 @@ int SaveHeadFile( struct Status const *input_tatus)
     fprintf(head_file,"}");
 
     fprintf(head_file,"{");
-    fprintf(head_file,"wifi_name:,");
-    fprintf(head_file,"wifi_password:,");
+    fprintf(head_file,"wifi_name:,",input_tatus->net_config.SSID);
+    fprintf(head_file,"wifi_password:,",input_tatus->net_config.PWD);
     fprintf(head_file,"}");
     //TODO
     fclose(head_file);

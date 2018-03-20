@@ -1,11 +1,11 @@
-/usr/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/openwrt/CLionProjects/serialWrite
--- The C compiler identification is GNU 4.5.1
--- Check for working C compiler: /usr/lib/ccache/cc
--- Check for working C compiler: /usr/lib/ccache/cc -- works
+/home/yh/clion-2017.3.4/bin/cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/yh/CLionProjects/serialWrite
+-- The C compiler identification is GNU 4.8.4
+-- Check for working C compiler: /usr/bin/cc
+-- Check for working C compiler: /usr/bin/cc -- works
 -- Detecting C compiler ABI info
 -- Detecting C compiler ABI info - done
 -- Detecting C compile features
 -- Detecting C compile features - done
 -- Configuring done
 -- Generating done
--- Build files have been written to: /home/openwrt/CLionProjects/serialWrite/cmake-build-debug
+-- Build files have been written to: /home/yh/CLionProjects/serialWrite/cmake-build-debug

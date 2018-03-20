@@ -1,1 +1,1 @@
-/usr/lib/ccache/cc  -g   CMakeFiles/serialWrite.dir/main.c.o  -o serialWrite 
+/usr/bin/cc -g   CMakeFiles/serialWrite.dir/main.c.o  -o serialWrite 

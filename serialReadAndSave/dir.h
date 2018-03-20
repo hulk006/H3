@@ -106,7 +106,7 @@ int SaveHeadFile( struct Status const *input_tatus)
     getcwd(buf,sizeof(buf));
     printf("current working directory: %s\n", buf);
 
-    CreatDir(input_tatus->user_bind_info.user_name);
+    CreatDir(input_tatus->user_bind_info.user_id);
     //获取时间当前时间
     struct timeval tv;
     char time_str[128];
@@ -117,21 +117,21 @@ int SaveHeadFile( struct Status const *input_tatus)
     FILE *head_file;
     const char *mode = "w";
     char filename[50]={'\0'} ;
-    MergeString2(filename,input_tatus->user_bind_info.user_name,"/head_file.txt");
+    MergeString2(filename,input_tatus->user_bind_info.user_id,"/head_file.txt");
     head_file = fopen(filename,mode);//"w" 写，如果文件存在，把文件截断至0长；如果文件不存在，会创建文件
     assert(head_file != NULL);
 
     fprintf(head_file, "this file is save user info:\n");
     fprintf(head_file,"{");
-    fprintf(head_file,"user_name:%s,",input_tatus->user_bind_info.user_name);
     fprintf(head_file,"user_id:%s,",input_tatus->user_bind_info.user_id);
+    fprintf(head_file,"bind_state:%d,",input_tatus->user_bind_info.bind);
     //TODO 设备登录道时候需要的变量
     fprintf(head_file,"token:,");
     fprintf(head_file,"}");
 
     fprintf(head_file,"{");
-    fprintf(head_file,"wifi_name:,");
-    fprintf(head_file,"wifi_password:,");
+    fprintf(head_file,"wifi_name:%s,",input_tatus->net_config.SSID);
+    fprintf(head_file,"wifi_password:%s,",input_tatus->net_config.PWD);
     fprintf(head_file,"}");
     //TODO
     fclose(head_file);
@@ -144,19 +144,19 @@ int SaveHeadFile( struct Status const *input_tatus)
  * @param user
  * @return
  */
-int SaveDataBlocksFile(const struct DataBlock *data_block,  char const *user)
+int SaveDataBlocksFile(const struct DataBlock *data_block,  char const *user_id)
 {
     //文件名以开始存储的时间命名，将一次读取道blocks数量存储进去，
     char filename[50]={'\0'} ;
     //N = 1000 * NUM 个block为一个文件，比如NUM=2 则到达block 到达2000个的时候就停止存储
     static int num_data_block = 0;//只初始化一次
     static int num_1000 = 0;
-    if(num_data_block += data_block->n_data_block <= 1000) //如果文件没有达到一个文件的最大block的数量
+    if(num_data_block += NUM <= 1000) //如果文件没有达到一个文件的最大block的数量
     {
         //打开已有的data文件
         FILE *data_blocks_file;
         const char *mode = "a+";
-        MergeString4(filename,user,"/data_blocks_file","0",".dat");
+        MergeString4(filename,user_id,"/data_blocks_file","0",".dat");
         data_blocks_file = fopen(filename, mode);//"w" 写，如果文件存在，把文件截断至0长；如果文件不存在，会创建文件
         assert(data_blocks_file != NULL);
         fprintf(data_blocks_file,data_block->rec_buf,num_data_block);
@@ -170,7 +170,7 @@ int SaveDataBlocksFile(const struct DataBlock *data_block,  char const *user)
         const char *mode = "a+";
         char num_string[25];
         sprintf(num_string, "%d", num_1000);
-        MergeString4(filename,user,"/data_blocks_file",num_string,".dat");
+        MergeString4(filename,user_id,"/data_blocks_file",num_string,".dat");
         data_blocks_file = fopen(filename, mode);
         assert(data_blocks_file != NULL);
         num_data_block += data_block->n_data_block;

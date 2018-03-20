@@ -8,7 +8,6 @@
 #include <stdint.h>
 #include <string.h>
 #include "protocol.h"
-#include "config.h"
 
 struct DeviceInfo
 {
@@ -72,8 +71,8 @@ struct Status status={
         .ndata_blocks = 0,
         .user_bind_info = {
                 .user_name = "user",
-                .user_id = "unbinduser",
-                .bind = 0,
+                .user_id = "123456",
+                .bind = 1,
         },
         .device_info = {
                 .mac_id = "macID",
@@ -121,7 +120,7 @@ void InitStatus()
 }
 void InitDataBlock()
 {
-    data_block.n_data_block = NUM;
+    data_block.n_data_block = 1;
     data_block.upload_to_cloud = 0;
     bzero(data_block.rec_buf, sizeof(data_block.rec_buf));
     return;

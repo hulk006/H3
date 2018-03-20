@@ -21,7 +21,6 @@
 #include "serial.h"
 #include "config.h"
 
-
 /**
  * @brief  字符串转转整数
 */
@@ -79,18 +78,17 @@ int HexToInt(char *hex)
  * @brief  判断串口收到到消息是否合法
  * @return bool
 */
-bool AnswerIsLegal(const char *rec_buf)
+bool AnswerIsLegal(const char *rec_buf, const int length)
 {
     //这里认为包头是前两个字节，包尾是后两个字节 不算换行符
-    int length = strlen(rec_buf);
+    //int length = strlen(rec_buf);
     //memcpy(*数组1，* 数组2，要赋值的大小)
-    char buf_head[FRAME_HEAD_LENGTH+1];
-    char buf_tail[FRAME_TAIL_LENGTH+1];
+    char buf_head[FRAME_HEAD_LENGTH];
+    char buf_tail[FRAME_TAIL_LENGTH];
     for(int i = 0;i < FRAME_TAIL_LENGTH; ++i )
     {
         buf_tail[i] = rec_buf[length - FRAME_TAIL_LENGTH - CHAR_STOP_BITS + i];
     }
-    buf_tail[FRAME_TAIL_LENGTH] = '\0';
     memccpy(buf_head, rec_buf,0, FRAME_HEAD_LENGTH);
 
     if(buf_head[0] == FRAME_HEAD[0] && buf_head[1] == FRAME_HEAD[1]) //开始两个字节必须相等
@@ -110,17 +108,19 @@ bool AnswerIsLegal(const char *rec_buf)
  * @param fd 类型 int 串口句柄
  * @return bool
 */
-bool HandleAnswer01Isready(char *rec_buf,const int fd)
+bool HandleAnswer01Isready(const int fd, const int answer_length)
 {
-    memset(rec_buf,0, sizeof(rec_buf));
-    //int read_result = SerialRead(fd, rec_buf, MAXSIZE, WAIT_TIME_RECV);
-    int read_result = SerialRead(fd, rec_buf, MAXSIZE, WAIT_TIME_RECV);
-    printf("the serial receieve buf :%s", rec_buf);
+    unsigned char isready_buf[10]={'\0'};
+    int read_result = SerialRead(fd,isready_buf,answer_length, WAIT_TIME_RECV);
     if ( read_result > 0)//正常读取到数据
     {
-        if(AnswerIsLegal(rec_buf))
+        if(AnswerIsLegal(isready_buf,answer_length))
         {
-            status.is_ready = rec_buf[FRAME_HEAD_LENGTH];//0 or 1
+            status.is_ready = isready_buf[FRAME_HEAD_LENGTH];//0 or 1
+            if(status.is_ready == '\0')
+                return true;
+            else
+                return false;
         }
         else
         {
@@ -140,27 +140,18 @@ bool HandleAnswer01Isready(char *rec_buf,const int fd)
  * @param fd 类型 int 串口句柄
  * @return bool
 */
-bool HandleAnswer10NetConfig(char *rec_buf,const int fd)
+bool HandleAnswer10NetConfig(const int fd,int answer_length)
 {
-    memset(rec_buf,0, sizeof(rec_buf));
-    int read_result = SerialRead(fd, rec_buf, MAXSIZE, WAIT_TIME_RECV);
-    printf("the serial receive buf :%s\n", rec_buf);
+    unsigned char net_buf[70]={'\0'};
+    int read_result = SerialRead(fd, net_buf,answer_length,WAIT_TIME_RECV);
     if (read_result > 0)//正常读取到数据
     {
-        if(AnswerIsLegal(rec_buf))
+        if(AnswerIsLegal(net_buf,answer_length))
         {
-            /*
-            for (int i = FRAME_HEAD_LENGTH,j = 0; i < (FRAME_HEAD_LENGTH+SSID_LENGTH) && j< 32; ++i,++ j)
-            {
-                status.net_config.SSID[j] = rec_buf[i];
-            }
-            for (int i = (FRAME_HEAD_LENGTH + SSID_LENGTH),j = 0; i < (FRAME_HEAD_LENGTH+SSID_LENGTH+PWD_LENGTH) && j<32; ++i,++ j)
-            {
-                status.net_config.PWD[j] = rec_buf[i];
-            }
-             */
-            strncpy( status.net_config.SSID ,rec_buf+FRAME_HEAD_LENGTH,SSID_LENGTH);
-            strncpy(status.net_config.PWD ,rec_buf+FRAME_HEAD_LENGTH+SSID_LENGTH,PWD_LENGTH);
+            memset(status.net_config.SSID,0, sizeof(status.net_config.SSID));
+            memset(status.net_config.PWD,0, sizeof(status.net_config.PWD));
+            strncpy(status.net_config.SSID ,net_buf+FRAME_HEAD_LENGTH,SSID_LENGTH);
+            strncpy(status.net_config.PWD ,net_buf+FRAME_HEAD_LENGTH+SSID_LENGTH,PWD_LENGTH);
         }
         else
         {
@@ -173,6 +164,7 @@ bool HandleAnswer10NetConfig(char *rec_buf,const int fd)
         SerialClose(fd,WAIT_TIME_RESTART);
         return false;
     }
+    printf("\nwifiSSID:%s    password:%s",status.net_config.SSID,status.net_config.PWD);
     return true;
 }
 /**
@@ -180,19 +172,17 @@ bool HandleAnswer10NetConfig(char *rec_buf,const int fd)
  * @param fd 类型 int 串口句柄
  * @return bool
 */
-bool HandleAnswer11DeviceInfo(char *rec_buf, const int fd)
+bool HandleAnswer11DeviceInfo( const int fd,const int answer_length)
 {
-    memset(rec_buf,0, sizeof(rec_buf));
-    int read_result = SerialRead(fd, rec_buf, MAXSIZE, WAIT_TIME_RECV);
-    printf("the serial receieve buf :%s\n", rec_buf);
+    unsigned char device_buf[24]={'\0'};
+    int read_result = SerialRead(fd, device_buf, answer_length, WAIT_TIME_RECV);
     if (read_result > 0)//正常读取到数据
     {
-        if(AnswerIsLegal(rec_buf))
+        if(AnswerIsLegal(device_buf,answer_length))
         {
-            strncpy(status.device_info.name,rec_buf+FRAME_HEAD_LENGTH,DEVICE_NAME_LENGTH);
-            strncpy(status.device_info.serial_no,rec_buf + FRAME_HEAD_LENGTH + DEVICE_NAME_LENGTH,
-                    DEVICE_SN_LENGTH);
-            strncpy(status.device_info.mac_id,rec_buf + FRAME_HEAD_LENGTH + DEVICE_NAME_LENGTH + DEVICE_SN_LENGTH,
+            strncpy(status.device_info.name,device_buf+FRAME_HEAD_LENGTH,DEVICE_NAME_LENGTH);
+            //strncpy(status.device_info.serial_no,device_buf + FRAME_HEAD_LENGTH + DEVICE_NAME_LENGTH,DEVICE_SN_LENGTH);
+            strncpy(status.device_info.mac_id,device_buf + FRAME_HEAD_LENGTH + DEVICE_NAME_LENGTH ,
                     DEVICE_MACID_LENGTH);
         }
         else
@@ -206,8 +196,9 @@ bool HandleAnswer11DeviceInfo(char *rec_buf, const int fd)
         SerialClose(fd,WAIT_TIME_RESTART);
         return false;
     }
+    puts("\ndevice info is:");
     puts(status.device_info.name);
-    puts(status.device_info.serial_no);
+    //puts(status.device_info.serial_no);
     puts(status.device_info.mac_id);
     return true;
 }
@@ -216,18 +207,27 @@ bool HandleAnswer11DeviceInfo(char *rec_buf, const int fd)
  * @param fd 类型 int 串口句柄
  * @return bool
 */
-bool HandleAnswer12UserInfo( char *rec_buf, const int fd)
+bool HandleAnswer12UserInfo( const int fd, const int answer_length )
 {
-    memset(rec_buf,0, sizeof(rec_buf));
-    int read_result = SerialRead(fd, rec_buf, MAXSIZE, WAIT_TIME_RECV);
-    printf("the serial receieve buf :%s\n", rec_buf);
+    unsigned char user_buf[33]={'\0'};
+    int read_result = SerialRead(fd, user_buf, answer_length, WAIT_TIME_RECV);
+    unsigned char user_id[12];
     if (read_result > 0)//正常读取到数据
     {
-        if(AnswerIsLegal(rec_buf))
+        if(AnswerIsLegal(user_buf,answer_length))
         {
-            strncpy(status.user_bind_info.user_id,rec_buf+FRAME_HEAD_LENGTH,USER_ID_LENGTH);//2 ,12
-            strncpy(status.user_bind_info.user_name,rec_buf + FRAME_HEAD_LENGTH + USER_ID_LENGTH,USER_NAME_LENGTH);//2+12,16 长度
-            status.user_bind_info.bind = rec_buf[FRAME_HEAD_LENGTH + USER_ID_LENGTH + USER_NAME_LENGTH];//2 12 16,
+            status.user_bind_info.bind = user_buf[FRAME_HEAD_LENGTH + USER_ID_LENGTH];//2 12 16,
+            if(status.user_bind_info.bind == 1)
+            {
+                printf("bind:%x\n",status.user_bind_info.bind);
+                strncpy(status.user_bind_info.user_id,user_buf+FRAME_HEAD_LENGTH,USER_ID_LENGTH);//2 ,12
+                printf("UID:%s\n",status.user_bind_info.user_id);
+            }
+            else
+            {
+                puts("a unbind user id ,please bind ,then upload ...");
+                ////如果未绑定，不需要同步云端，给一个固定的UID,unbinduser
+            }
         }
         else
         {
@@ -240,30 +240,27 @@ bool HandleAnswer12UserInfo( char *rec_buf, const int fd)
         SerialClose(fd,WAIT_TIME_RESTART);
         return false;
     }
-    printf("UID:%s\n",status.user_bind_info.user_id);
-    printf("Uname:%s\n",status.user_bind_info.user_name);
-    printf("bind:%c\n",status.user_bind_info.bind);
     return true;
 }
+
 ////TODO
 /**
  * @brief  处理13指令收到的消息，询问同步时间的信息
  * @param fd 类型 int 串口句柄
  * @return bool
 */
-bool HandleAnswer13SysncTime(char *rec_buf, const int fd)//需要多次发送请求，同步时间
+bool HandleAnswer13SysncTime(const int fd,const int answer_length)//需要多次发送请求，同步时间
 {
-    memset(rec_buf,0, sizeof(rec_buf));
-    int read_result = SerialRead(fd, rec_buf, MAXSIZE, WAIT_TIME_RECV);
-    printf("the serial receive buf :%s\n", rec_buf);
+    unsigned char time_buf[9]={'\0'};
+    int read_result = SerialRead(fd, time_buf, answer_length, WAIT_TIME_RECV);
     if (read_result > 0)//正常读取到数据
     {
-        if(AnswerIsLegal(rec_buf))
+        if(AnswerIsLegal(time_buf,answer_length))
         {
-            status.time_sync_state = rec_buf[FRAME_HEAD_LENGTH];
-            if(status.time_sync_state == '2')//字符的比较而不是字符串的比较，只有回答已经同步才更新
+            status.time_sync_state = time_buf[FRAME_HEAD_LENGTH];
+            if(status.time_sync_state == 2)//只有回答已经同步才更新
             {
-                strncpy(status.update_time,rec_buf + 1 + FRAME_HEAD_LENGTH,4 );
+                strncpy(status.update_time,time_buf + 1 + FRAME_HEAD_LENGTH,4 );
             }
             else //其他情况失败从新来
             {
@@ -283,6 +280,8 @@ bool HandleAnswer13SysncTime(char *rec_buf, const int fd)//需要多次发送请
         SerialClose(fd,WAIT_TIME_RESTART);
         return false;
     }
+    printf("time:%s\n",status.update_time);
+    printf("reponse:%d\n",status.time_sync_state);
     return true;
 }
 //受到同步的命令,rec_buf变成
@@ -292,22 +291,27 @@ bool HandleAnswer13SysncTime(char *rec_buf, const int fd)//需要多次发送请
  * @param fd 类型 int 串口句柄
  * @return bool
 */
-bool HandleAnswer15Status(char *rec_buf, const int fd)//需要多次发送请求，同步时间
+bool HandleAnswer15Status(const int fd, const int answer_length)//需要多次发送请求，同步时间
 {
-    memset(rec_buf,0, sizeof(rec_buf));
-    int read_result = SerialRead(fd, rec_buf, MAXSIZE, WAIT_TIME_RECV);
-    printf("the answer 15 receive buf :%s\n", rec_buf);
+    //TODO 变量类型需要修改
+    unsigned char remain_buf[8]={'\0'};
+    //tcflush(fd, TCIOFLUSH);//清除串口缓存
+    int read_result = SerialRead(fd, remain_buf, answer_length, WAIT_TIME_RECV);
     if (read_result > 0)//正常读取到数据
     {
-        if(AnswerIsLegal(rec_buf))
+        if(AnswerIsLegal(remain_buf,answer_length))
         {
             //状态
-            status.state = rec_buf[FRAME_HEAD_LENGTH];
+            status.state = remain_buf[FRAME_HEAD_LENGTH];
             //剩余到blocks数量
-            char remain_blocks_c[3+1]={'\0'};//为什么不能用3
-            strncpy(remain_blocks_c,rec_buf + FRAME_HEAD_LENGTH + 1,3);
-            //status.remain_blocks = CharToInt(remain_blocks_c);
-            status.remain_blocks = HexToInt(remain_blocks_c);
+            int n = 0;//10进制表示
+            for (int i = 0; i < 3; ++i)
+            {
+                status.n_remain_blocks[i] = remain_buf[FRAME_HEAD_LENGTH + i + 1];
+                n = n + (status.n_remain_blocks[i]<<(i*8));
+            }
+            status.remain_blocks = n;
+
         }
         else
         {
@@ -320,6 +324,7 @@ bool HandleAnswer15Status(char *rec_buf, const int fd)//需要多次发送请求
         SerialClose(fd,WAIT_TIME_RESTART);
         return false;
     }
+    printf("盒子剩余%d data blocks", status.remain_blocks);
     return true;
 }
 /**
@@ -398,57 +403,40 @@ char *IntTo3ByteHex(int input,char *output)
 }
 
 /**
- * @brief  发送14命令
+ * @brief  发送14命令,告诉盒子发送道起始地址status.n_blocks 16进制的数
  * @param  fd 串口句柄
  * @return bool
 */
 bool Send14Command(const int fd)
 {
-    char nblock_address[3] ={'\0'};
-    IntTo3ByteHex(status.ndata_blocks,nblock_address);
-    //指令从第几个block发送nblock_address，1000
-    if ((int)strlen(nblock_address) == 3)//保证命令正确
+    unsigned char command_14_buf[10]={'H','3',0x14,0x00,0x00,0x00,0x00,0x01,'5','A'};
+    int n=0;//16进制转为整数
+    for (int i = 0; i < 3; ++i)
     {
-        memset(REUQEST_14_SYNC_DATA, 0, sizeof(REUQEST_14_SYNC_DATA));
-        strcpy(REUQEST_14_SYNC_DATA, "H30D");
-        MergeString3(REUQEST_14_SYNC_DATA, nblock_address, NUM_C, FRAME_TAIL);
-        puts("code 14 buf :");
-        SerialCommand(fd, REUQEST_14_SYNC_DATA);////master下达询问同步状态的指令
-        return true;
-    } else
-    {
-        puts("SYNC ERROR");
-        return  false;
+        command_14_buf[i+4] = status.n_blocks[i];
+        n = n + (status.n_blocks[i]<<(i*8));
     }
+    SerialCommand(fd,command_14_buf,10);
+    printf("command 14 ：master have receive %d data blocks\n",n);
+    return true;
 }
 /**
- * @brief  发送15命令
+ * @brief  发送15命令,询问盒子还剩多少个block没发送完
  * @param  fd 串口句柄
  * @return bool
 */
 bool Send15Command(const int fd)
 {
-    char nblock_address[3] ={'\0'};//当前已经同步了多少个blocks
-    IntTo3ByteHex(status.ndata_blocks,nblock_address);
-
-    //TransBlockNumTo3Char(nblock_address,status.ndata_blocks);
-    //指令从第几个block发送nblock_address，1000
-    if ((int)strlen(nblock_address) == 3)//保证命令正确
+    unsigned char command_15_buf[10]={'H','3',0x15,0x00,0x00,0x00,0x00,0x01,'5','A'};
+    int n=0;//16进制转为整数
+    for (int i = 0; i < 3; ++i)
     {
-        printf("Master have received %s blocks\n",nblock_address);
-        memset(REUQEST_15_STATUS,0, sizeof(REUQEST_15_STATUS));
-        strcpy(REUQEST_15_STATUS,"H30F");
-        ////TODO表示上一次同步状态，0代表成功，1代表失败，默认成功
-        char state[2] = "1";
-        MergeString3(REUQEST_15_STATUS,nblock_address,state,FRAME_TAIL);
-        SerialCommand(fd,REUQEST_15_STATUS);////master下达询问同步状态的指令
-        return true;
+        command_15_buf[i+4] = status.n_blocks[i];//
+        n = n + (status.n_blocks[i]<<(i*8));
     }
-    else
-    {
-        puts("SYSNC ERROR");
-        return  false;
-    }
+    SerialCommand(fd,command_15_buf,10);
+    printf("command 15：received %d blocks,please tell me remain N blocks\n",n);
+    return true;
 }
 /**
  * @brief 循环读取一个或者多个block
@@ -458,17 +446,50 @@ bool Send15Command(const int fd)
 int HandleAnswer14SysncData2(const int fd)
 {
     /**每次处理串口数据之前都清空内存的数据**/
+    size_t rec_buf_size = sizeof(data_block.rec_buf);
     memset(data_block.rec_buf,'\0', sizeof(data_block.rec_buf));
-    int read_result = SerialReadDataBlock(fd, data_block.rec_buf, WAIT_TIME_RECV);
+    int read_result = SerialReadDataBlock(fd,data_block.rec_buf,rec_buf_size, WAIT_TIME_RECV);
     printf("data block have %d Bytes\n", read_result);
-    printf("data block:%s\n", data_block.rec_buf);
+
     if(read_result >= 0)
     {
-        if(AnswerIsLegal(data_block.rec_buf))
+        if(AnswerIsLegal(data_block.rec_buf,read_result))
         {
             //TODO 加入文件存储？
-            status.time_sync_state = '1';//表示读入内存成功
-            status.ndata_blocks += NUM;//表示已经接收了NUM个blocks
+            status.time_sync_state = 1;//表示读入内存成功
+            ////把内存中的 几个 block 加上 当前接收到的block数量
+            int  low_byte = status.n_blocks[0] + NUM_ONCE_BLOCKS;
+            unsigned  char flag = 0x00;
+            if (low_byte <= 255)
+            {
+                status.n_blocks[0] = status.n_blocks[0] + NUM_ONCE_BLOCKS;
+            }
+            else
+            {
+                status.n_blocks[0] = 0xFF;
+                flag = 0x01;
+            }
+
+            for (int i = 1; i < 3; ++i)
+            {
+                if(status.n_blocks[i] + flag <= 255 )
+                {
+                    status.n_blocks[i]=status.n_blocks[i] + flag;
+                    flag = 0x00;//进位标志为0
+                }
+                else
+                {
+                    status.n_blocks[i] = 0xFF;
+                    flag = 0x01;//进位标志为0
+                }
+            }
+
+            ////to 10 jin zhi
+            status.ndata_blocks = 0;
+            for (int i = 0; i < 3; ++i)
+            {
+                status.ndata_blocks  = status.ndata_blocks  + (status.n_blocks[i]<<(i*8));
+            }
         }
         else
         {
@@ -480,6 +501,7 @@ int HandleAnswer14SysncData2(const int fd)
     {
         return -1;
     }
+    printf("got the data block:total %d\n", status.ndata_blocks);
     return read_result;
 }
 /**
@@ -492,17 +514,19 @@ int SyncDataProcess(const int fd)//心电盒子上传数据到操作，返回值
     /**循环1：控制 data block 的发送和接收，命令15询问还剩多少个block没有发送，直到只剩下0个的时候停止接收*/
     while(true)
     {
+
         if(Send15Command(fd)== false) break;//发送命令询问盒子的装状态和还有多少个block才能同步完
         char status_buf[MAXSIZE]={'\0'};//读取的data blocks的数量
-        printf("\nPlease input 15 buf :\n");
-        if(!HandleAnswer15Status(status_buf,fd)) return -1;//回到错误从新开始
+        printf("Please input 15 buf :\n");
+        if(!HandleAnswer15Status(fd,8)) return -1;//回到错误从新开始
 
         if(status.remain_blocks == 0)
         {
             SaveSyncStatusSucess(status.user_bind_info.user_name);
-            printf("remain blocks is 0 ,updated finished");
+            printf("remain blocks is 0 ,updated finished\n");
             return 0;
         }
+
         /***********************************************************************************************/
         int i = 0;
         while (true)//循环2：控制一次data block的发送，如果成功就ok，失败会重发3次，否则就失败
@@ -525,7 +549,7 @@ int SyncDataProcess(const int fd)//心电盒子上传数据到操作，返回值
             }
             else//此次数据正常接收，存储并且退出内层循环
             {
-                SaveDataBlocksFile(&data_block,status.user_bind_info.user_name);
+                SaveDataBlocksFile(&data_block,status.user_bind_info.user_id);
                 break;//一次数据同步结束，退出循环2
             }
 

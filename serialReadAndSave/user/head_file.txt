@@ -1,2 +1,2 @@
 this file is save user info:
-{user_name:user,user_id:123456,token:,}{wifi_name:,wifi_password:,}
+{user_name:user,user_id:,token:,}{wifi_name:Lenovo,wifi_password:123456,}
