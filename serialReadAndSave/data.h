@@ -56,6 +56,7 @@ struct  Status
     unsigned char n_blocks[3];
     ////剩余多少block没同步完成，初始化时应该尾1000
     int remain_blocks;
+    int total_blocks_num;
     unsigned char n_remain_blocks[3];
 } ;
 struct Status status={
@@ -86,12 +87,13 @@ struct Status status={
         },
         .n_blocks={0x00,0x00,0x00},
         .n_remain_blocks={0xff,0xff,0xff},
+        .total_blocks_num=1000,
 };
 //TODO
 struct DataBlock
 {
     int n_data_block;
-    char rec_buf[12000];//预留足够大的空间，来存储收到的data block
+    unsigned char rec_buf[256 * 1024 + 5];//预留足够大的空间，来存储收到的data block
     int upload_to_cloud;
 };
 
@@ -115,8 +117,7 @@ void InitStatus()
 
     status.remain_blocks = 1000;//假设剩余比较大的data block 数量
     status.n_remain_blocks[0] = 0xff; status.n_remain_blocks[1] = 0xff; status.n_remain_blocks[2] = 0xff;
-
-
+    status.total_blocks_num=1000;
     return;
 }
 void InitDataBlock()

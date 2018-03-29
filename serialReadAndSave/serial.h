@@ -174,7 +174,6 @@ int SerialRead(const int fd,unsigned char p[],const int desire_get_len,const int
     struct timeval tv;
     tv.tv_sec = time_out;
     tv.tv_usec = 0;
-    //tcflush(fd, TCIOFLUSH);//清除串口缓存
     fd_set read_fds;
     int nread = 0 ;
     FD_ZERO(&read_fds);
@@ -182,7 +181,7 @@ int SerialRead(const int fd,unsigned char p[],const int desire_get_len,const int
     puts("start serial select .......");
     if(select(fd+1,&read_fds,NULL,NULL,&tv))
     {
-        Sleep(20);
+        Sleep(10);
         nread = read(fd,p, desire_get_len);
         if(nread<=0)
         {
@@ -203,6 +202,7 @@ int SerialRead(const int fd,unsigned char p[],const int desire_get_len,const int
         }
         printf("\n");
     }
+
     return nread;
 }
 /**
@@ -213,53 +213,42 @@ int SerialRead(const int fd,unsigned char p[],const int desire_get_len,const int
  * @param  time_out int 串口等待时间
  * @return  读取buf的长度
 */
-int SerialReadDataBlock(const int fd,char * p,const int desire_get_len,const int time_out)
+int SerialReadDataBlock(const int fd,unsigned char * p,const int desire_get_len,const int time_out)
 {
     int nBytes = 0;
-    char read_temp[1024];
+    unsigned char read_temp[2048];
     struct timeval tv;
     tv.tv_sec = time_out;
     tv.tv_usec = 0;
     fd_set read_fds;
     FD_ZERO(&read_fds);
     FD_SET(fd,&read_fds);
-    //tcflush(fd, TCIOFLUSH);//清除串口缓存
     puts("select");
-    if(select(fd+1,&read_fds,NULL,NULL,&tv))
+
+    //获取时间当前时间
+    time_t t1;
+    t1 = time(NULL);
+    /**循环读取data blocks */
+    while (select(fd+1,&read_fds,NULL,NULL,&tv))
     {
-        Sleep(1000);//1000ms
-        while (1)
+        Sleep(10);
+        memset(read_temp,'\0',2048);
+        int nread = read(fd, read_temp, 2048);//一次最多读取22k字符
+        printf("nread=%d ",nread);
+        int start =  nBytes;
+        nBytes += nread;//一共读取了多少个字符
+        int stop = nBytes;
+        for(int i = start;i < stop;++i)
         {
-            int nread = 0;
-            nread = read(fd, p, desire_get_len);
-            int a=strlen(p);
-            char temp = read_temp[strlen(p)-1];
-            if(temp =='\n')//遇到换行符停止
-            {
-                nBytes += nread;
-                break;
-            }
-
-            if (nread > 0)
-            {
-                nBytes += nread;
-            }
-            else if (nread == 0)
-            {
-                printf("read finish");
-                break;
-            }
-            else
-            {
-                printf("read error");
-                break;
-            }
+            p[i] = read_temp[i - start];
         }
+
+        if(nread == 0)
+            break;
     }
-
-
-
-
+    time_t t2;
+    t2 = time(NULL);
+    printf("\ncost time = %ds ",(int)(t2 - t1));
     return nBytes;
 }
 
@@ -274,11 +263,7 @@ int SerialOpen(const char *serial_name,const int bau)
     int   serial_handle = 0;
     printf("Start...\n");
     //打开串口返回handle
-#if debug
-    serial_handle = open(serial_name,  O_RDWR| O_NOCTTY );
-#else
     serial_handle = open(serial_name,  O_RDWR| O_NOCTTY |O_NDELAY);
-#endif
     if (serial_handle < 0)
     {
         perror(serial_name);

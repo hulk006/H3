@@ -1,0 +1,6 @@
+start time:2018-03-29 17:42
+Start...
+/dev/ttyS1 serial is open
+serial'bauderate is:115200
+comand send :  48  33  1  0  0  0  35  41
+start serial select .......

@@ -20,76 +20,37 @@
 #include "dir.h"
 #include "serial.h"
 #include "config.h"
+#include "analyze_head.h"
 
 /**
- * @brief  字符串转转整数
-*/
-int CharToInt(const char *p)
+ * @func 把16进制的字符转为字符串：如果小于10就转换成数字，如果大于10就转换为字母
+ * @param des 含有数字和字母的输出
+ * @param hex 16进制字符串
+ * @param length 两个字符串的长度
+ */
+void HexToStr(char *des, const unsigned char *hex,const int length)
 {
-    return atoi(p);
-}
-/**
- * @brief  整数转字符串，保证3个字节
-*/
-char * IntToString(char *des,int n)//整数转换成字符串的函数
-{
-    sprintf(des, "%d", n);
-    return des;
-}
-
-/**
- * @brief  16进制到字符串转化为10进制的整数
- * @param   hex 类型 char 输入的16进制字符串
- * @return  int 10进制整数
-*/
-int HexToInt(char *hex)
-{
-    int len = strlen(hex);
-    int power_index = 0; //幂级数
-    int sum = 0;
-    if (len-1<0) return 0;
-    for (int i = len - 1 ; i >= 0; -- i, ++ power_index)//反向遍历字符串
-    {
-        char temp = hex[i];
-
-        int mark1 = temp - '0';
-        int mark2 = temp - 'A';
-        if (mark1 >= 0 && mark1 < 10)//如果是小于10的整数
-        {
-            sum += mark1 * pow(16, power_index);
-            continue;
-        }
-        if (mark2 >= 0 && mark2 <= 5)//如果是大于10的整数
-        {
-            sum += (mark2 + 10) * pow(16,power_index);
-            continue;
-        }
-        else
-        {
-            perror("not a hex number!");
-            return 0;
-        }
-    }
-
-    return sum;
+    for (int i = 0; i < length; ++i)
+        des[i] = hex[i]>10 ? hex[i]:'0' + (int)hex[i];
+    return;
 }
 //TODO
 /**
  * @brief  判断串口收到到消息是否合法
  * @return bool
 */
-bool AnswerIsLegal(const char *rec_buf, const int length)
+bool AnswerIsLegal(const unsigned char *rec_buf, const int length)
 {
     //这里认为包头是前两个字节，包尾是后两个字节 不算换行符
-    //int length = strlen(rec_buf);
-    //memcpy(*数组1，* 数组2，要赋值的大小)
     char buf_head[FRAME_HEAD_LENGTH];
     char buf_tail[FRAME_TAIL_LENGTH];
-    for(int i = 0;i < FRAME_TAIL_LENGTH; ++i )
-    {
-        buf_tail[i] = rec_buf[length - FRAME_TAIL_LENGTH - CHAR_STOP_BITS + i];
-    }
-    memccpy(buf_head, rec_buf,0, FRAME_HEAD_LENGTH);
+    int a = length - FRAME_TAIL_LENGTH - CHAR_STOP_BITS + 0;
+    int b = length - FRAME_TAIL_LENGTH - CHAR_STOP_BITS + 1;
+
+    buf_tail[0]=rec_buf[a];
+    buf_tail[1]=rec_buf[b];
+    buf_head[0]=rec_buf[0];
+    buf_head[1]=rec_buf[1];
 
     if(buf_head[0] == FRAME_HEAD[0] && buf_head[1] == FRAME_HEAD[1]) //开始两个字节必须相等
     {
@@ -202,6 +163,8 @@ bool HandleAnswer11DeviceInfo( const int fd,const int answer_length)
     puts(status.device_info.mac_id);
     return true;
 }
+
+
 /**
  * @brief  处理12指令收到的消息，读取绑定用户信息
  * @param fd 类型 int 串口句柄
@@ -211,7 +174,7 @@ bool HandleAnswer12UserInfo( const int fd, const int answer_length )
 {
     unsigned char user_buf[33]={'\0'};
     int read_result = SerialRead(fd, user_buf, answer_length, WAIT_TIME_RECV);
-    unsigned char user_id[12];
+    unsigned char user_id[12]={0x00};
     if (read_result > 0)//正常读取到数据
     {
         if(AnswerIsLegal(user_buf,answer_length))
@@ -220,7 +183,8 @@ bool HandleAnswer12UserInfo( const int fd, const int answer_length )
             if(status.user_bind_info.bind == 1)
             {
                 printf("bind:%x\n",status.user_bind_info.bind);
-                strncpy(status.user_bind_info.user_id,user_buf+FRAME_HEAD_LENGTH,USER_ID_LENGTH);//2 ,12
+                strncpy(user_id,user_buf+FRAME_HEAD_LENGTH,USER_ID_LENGTH);//2 ,12
+                HexToStr(status.user_bind_info.user_id, user_id,answer_length);
                 printf("UID:%s\n",status.user_bind_info.user_id);
             }
             else
@@ -327,80 +291,8 @@ bool HandleAnswer15Status(const int fd, const int answer_length)//需要多次�
     printf("盒子剩余%d data blocks", status.remain_blocks);
     return true;
 }
-/**
- * @brief  把整数转化成16进制到字符
- * @param aa 类型 int 输入整数
- * @param buffer 类型 char 输出的16进制字符
- * @return buffer
-*/
-char * IntToHex(int aa,char *buffer)//int <4095
-{
-    if(aa >= 4095)
-    {
-        perror("input int is extend 4095!");
-        return NULL;
-    }
-    static int i = 0;
-    if (aa < 16)            //递归结束条件
-    {
-        if (aa < 10)        //当前数转换成字符放入字符串
-            buffer[i] = aa + '0';
-        else
-            buffer[i] = aa - 10 + 'A';
-        buffer[i+1] = '\0'; //字符串结束标志
-    }
-    else
-    {
-        IntToHex(aa / 16,buffer);  //递归调用
-        i++;                //字符串索引+1
-        aa %= 16;           //计算当前值
-        if (aa < 10)        //当前数转换成字符放入字符串
-            buffer[i] = aa + '0';
-        else
-            buffer[i] = aa - 10 + 'A';
-    }
-    return (buffer);
-}
-/**
- * @brief  将16进制到字符串，格式化为3字节的字符串，如F 00F
- * @param input_hex 类型 char 输入16进制字符串
- * @param output 类型 char 格式化输出
- * @return output
-*/
-char *FormatTo3ByteHex( char *input_hex,char *output)
-{
-    int len = strlen(input_hex);
-    switch (len){
-        case 1:
-            MergeString2(output,"00",input_hex);
-            break;
-        case 2:
-            MergeString2(output,"0",input_hex);
-            break;
-        case 3:
-            strcpy(output,input_hex);
-            break;
-        default:
-            perror("error in FormatTo3Byte");
-            break;
-    }
-    return output;
-}
-/**
- * @brief  把整数转化成16进制到字符，并且格式化输入 如：15 --> 00F
- * @param   input 类型 int 输入整数
- * @param   output 类型 char 格式化输出的16进制字符
- * @return  output
-*/
-char *IntTo3ByteHex(int input,char *output)
-{
-    char buffer[4]="\0";
-    IntToHex(input,buffer);
-    char final[3] = "\0";
-    FormatTo3ByteHex(buffer,final);
-    strcpy(output,final);
-    return output;
-}
+
+
 
 /**
  * @brief  发送14命令,告诉盒子发送道起始地址status.n_blocks 16进制的数
@@ -443,14 +335,13 @@ bool Send15Command(const int fd)
  * @param fd 串口的句柄
  * @return 读取到字节数,-1 代表传输错误，0代表不合法
  */
-int HandleAnswer14SysncData2(const int fd)
+int HandleAnswer14SysncData(const int fd)
 {
     /**每次处理串口数据之前都清空内存的数据**/
     size_t rec_buf_size = sizeof(data_block.rec_buf);
     memset(data_block.rec_buf,'\0', sizeof(data_block.rec_buf));
     int read_result = SerialReadDataBlock(fd,data_block.rec_buf,rec_buf_size, WAIT_TIME_RECV);
     printf("data block have %d Bytes\n", read_result);
-
     if(read_result >= 0)
     {
         if(AnswerIsLegal(data_block.rec_buf,read_result))
@@ -504,29 +395,29 @@ int HandleAnswer14SysncData2(const int fd)
     printf("got the data block:total %d\n", status.ndata_blocks);
     return read_result;
 }
+
 /**
  * @brief  同步block数据
  * @param  rec_buf 收到到消息
  * @return 1 成功 -1 失败
 */
-int SyncDataProcess(const int fd)//心电盒子上传数据到操作，返回值-1，表示出错需要从来，1表示成功
+int SyncDataProcess(const int fd, const char *working_dir)//心电盒子上传数据到操作，返回值-1，表示出错需要从来，1表示成功
 {
     /**循环1：控制 data block 的发送和接收，命令15询问还剩多少个block没有发送，直到只剩下0个的时候停止接收*/
     while(true)
     {
-
+        /**
         if(Send15Command(fd)== false) break;//发送命令询问盒子的装状态和还有多少个block才能同步完
-        char status_buf[MAXSIZE]={'\0'};//读取的data blocks的数量
+
         printf("Please input 15 buf :\n");
         if(!HandleAnswer15Status(fd,8)) return -1;//回到错误从新开始
-
-        if(status.remain_blocks == 0)
+        */
+        if(status.ndata_blocks >= status.total_blocks_num)
         {
-            SaveSyncStatusSucess(status.user_bind_info.user_name);
+            SaveSyncStatusSucess(status.user_bind_info.user_name);/**读取完成*/
             printf("remain blocks is 0 ,updated finished\n");
             return 0;
         }
-
         /***********************************************************************************************/
         int i = 0;
         while (true)//循环2：控制一次data block的发送，如果成功就ok，失败会重发3次，否则就失败
@@ -534,7 +425,8 @@ int SyncDataProcess(const int fd)//心电盒子上传数据到操作，返回值
             //修改命令参数
             ++i;
             if(Send14Command(fd) == false) return -1;//发送命令失败，整体退出
-            int handle14 = HandleAnswer14SysncData2(fd);
+            int handle14 = HandleAnswer14SysncData(fd);
+
             if(handle14 == 0)//此次数据接收格式不对，直接退出数据同步程序
             {
                 return -1;
@@ -550,9 +442,14 @@ int SyncDataProcess(const int fd)//心电盒子上传数据到操作，返回值
             else//此次数据正常接收，存储并且退出内层循环
             {
                 SaveDataBlocksFile(&data_block,status.user_bind_info.user_id);
+
+                if(status.ndata_blocks == 1)/**ndata_blocks初始化为0*/
+                {
+                    status.total_blocks_num = GetTotalBlocksNum(working_dir,status.user_bind_info.user_id);/**从第一block中读取总的blocks数量*/
+                    printf("一共：%d blocks",status.total_blocks_num);
+                }
                 break;//一次数据同步结束，退出循环2
             }
-
         }
         /***一次数据同步结束后，命令15再次询问发送了多少个block，还剩多少个block****/
     }

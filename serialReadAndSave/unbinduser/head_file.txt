@@ -1,2 +1,1 @@
-this file is save user info:
-{user_id:unbinduser,bind_state:0,token:,}{wifi_name:lenovo,wifi_password:123456789,}
+{'userId':'unbinduser','bindState':'0','deviceId':'LENOVOECG_DDB7erial_no','token':'111','wifiName':'Lenovo','wifiPassword':'123456',}
