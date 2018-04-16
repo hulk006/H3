@@ -11,37 +11,33 @@
 #include <zconf.h>
 #include <assert.h>
 #include <time.h>
+#include <pwd.h>
 #include "data.h"
+#include "analyze_head.h"
+#include "protocol.h"
 
-
+#define HEAD_POSTFIX ".HEAD"
 #define ACCESS access
 #define MKDIR(a) mkdir((a),0755)
-
+#define HOME_DIR (getpwuid(getuid())->pw_dir)
 /**
- * @brief  合并字符串
- * @return des为p0+p1
-*/
-char* MergeString2(char *des,char const *p0,char const *p1)
+ * @func 把当前的时间转换成时间戳
+ * @param
+ */
+void GetTimeCurrent(unsigned char * time_buf,int length)
 {
-    strcat(des,p0);
-    strcat(des,p1);
-    return des;
+    struct timeval tv;
+    gettimeofday(&tv,NULL);
+
+    long int time = tv.tv_sec;
+    printf("%x\n",time);
+    unsigned char *p = (&time);
+    for (int i = 0; i < 4; ++i)
+    {
+        time_buf[i+4] = *(p+i);
+    }
 }
-char * MergeString3(char *des,char const  *p0,char const  *p1,char const *p2)
-{
-    strcat(des,p0);
-    strcat(des,p1);
-    strcat(des,p2);
-    return des;
-}
-char * MergeString4(char *des,char const *p0, char const *p1,char const *p2,char const *p3)
-{
-    strcat(des,p0);
-    strcat(des,p1);
-    strcat(des,p2);
-    strcat(des,p3);
-    return des;
-}
+
 /**
  * @func 修改文件的名称
  * @param old_name
@@ -57,41 +53,18 @@ void ChangeFileName(const char *old_name,const char *new_name)
 }
 int CreatDir(char const  *pDir)
 {
-    int i = 0;
     int iRet;
-    int iLen;
-    char* pszDir;
-
     if(NULL == pDir)
     {
         return 0;
     }
-
-    pszDir = strdup(pDir);//复制一个字符串到副本
-    iLen = (int) strlen(pszDir);//长度
-    // 创建中间目录
-    for (i = 0;i < iLen;++i)
-    {
-        if (pszDir[i] == '\\' || pszDir[i] == '/')//检测文件目录标志'\\'
-        {
-            pszDir[i] = '\0';
-            //如果不存在,创建access()函数，存在返回0，不存在返回-1
-            iRet = ACCESS(pszDir,0);//检查文件的存在性
-            if (iRet != 0)
-            {
-                iRet = MKDIR(pszDir);//建立目录
-                if (iRet != 0)
-                {
-                    return -1;
-                }
-            }
-            //支持linux,将所有\换成/
-            pszDir[i] = '/';
+    iRet = ACCESS(pDir,0);//检查文件夹的存在性
+    if (iRet != 0) {
+        iRet = MKDIR(pDir);//建立目录
+        if (iRet != 0) {
+            return -1;
         }
     }
-
-    iRet = MKDIR(pszDir);
-    free(pszDir);
     return iRet;
 }
 
@@ -114,18 +87,23 @@ int CreatFile(const char *file_name,FILE *fp)
  */
 int SaveHeadFile( struct Status const *input_tatus)
 {
-    char buf[80];
-    getcwd(buf,sizeof(buf));
-    printf("current working directory: %s\n", buf);
-
-    CreatDir(input_tatus->user_bind_info.user_id);
+    char user_dir[80]={'\0'};
+    printf("user:%s   1111",user_dir);
+    MergeString2(user_dir, WORKING_DIR,input_tatus->user_bind_info.user_id);
+    printf("current working directory: %s\n", user_dir);
+    CreatDir(user_dir);
     FILE *head_file;
     const char *mode = "w";
-    char filename[50]={'\0'} ;
-    MergeString2(filename,input_tatus->user_bind_info.user_id,"/head_file.txt");
+    char filename[100]={'\0'} ;
+    MergeString2(filename,user_dir,"/head_file.txt");
+    /**验证文件是否存在*/
+    if (!access(filename,0) )
+        printf("file %s  exist\n",filename);
+    else
+        CreateDataFile(filename);
+    /**打开已有的data文件*/
     head_file = fopen(filename,mode);//"w" 写，如果文件存在，把文件截断至0长；如果文件不存在，会创建文件
     assert(head_file != NULL);
-
     printf("saving user info:\n");
     fprintf(head_file,"{");
     fprintf(head_file,"\'userId\':\'%s\',",input_tatus->user_bind_info.user_id);
@@ -134,8 +112,10 @@ int SaveHeadFile( struct Status const *input_tatus)
     //TODO 设备登录道时候需要的变量
     fprintf(head_file,"\'token\':\'111\',");
 
-    fprintf(head_file,"\'wifiName\':\'%s\',",input_tatus->net_config.SSID);
-    fprintf(head_file,"\'wifiPassword\':\'%s\',",input_tatus->net_config.PWD);
+    //fprintf(head_file,"\'wifiName\':\'%s\',",input_tatus->net_config.SSID);
+    //fprintf(head_file,"\'wifiPassword\':\'%s\',",input_tatus->net_config.PWD);
+    fprintf(head_file,"\'wifiName\':\'%s\',","YHtest");
+    fprintf(head_file,"\'wifiPassword\':\'%s\',","qwertyuiop");
     fprintf(head_file,"}");
     //TODO
     fclose(head_file);
@@ -151,55 +131,112 @@ int SaveHeadFile( struct Status const *input_tatus)
  */
 int SaveDataBlocksFile(const struct DataBlock *data_block,  char const *user_id)
 {
-    static int N = 10;
     //文件名以开始存储的时间命名，将一次读取道blocks数量存储进去，
-    char filename[50] = {'\0'} ;
+    char filename[100] = {'\0'} ;
     static int num_data_block = 0;//只初始化一次
     static int num_N = 0;
     num_data_block += data_block->n_data_block;//已经接收了多少个data block
-    num_N = num_data_block/N;//根据有多少个100倍数来命名文件
+
     /** 存数data block 的头文件*/
     if(num_data_block == 1)
     {
         const char *mode = "wb";//如果不存在，就新建一个
-        MergeString4(filename,user_id,"/data_blocks_file","_head",".dat");
+        MergeString2(filename,WORKING_DIR,user_id);
+        MergeString3(filename,"/data_blocks_file","_head",HEAD_POSTFIX);
+        /**验证文件是否存在*/
+        if (!access(filename,0) )
+            printf("file %s  exist\n",filename);
+        else
+            CreateDataFile(filename);
+        /**打开已有的data文件*/
         //打开已有的data文件
         FILE *data_blocks_file;
         data_blocks_file = fopen(filename, mode);
         assert(data_blocks_file != NULL);
         /**存储data block*/
         //TODO
-        fwrite(data_block->rec_buf, sizeof(data_block->rec_buf),1,data_blocks_file);
-        //fprintf(data_blocks_file,"%s",data_block->rec_buf);
+        int a=sizeof(data_block->rec_buf);
+        fwrite(data_block->rec_buf, HEAD_DATA_BLOCK_SIZE,1,data_blocks_file);
         fclose(data_blocks_file);//关闭
         return num_data_block;
     }
-    /**定义文件名100个存成一个文件*/
-    char num_string[10];
-    sprintf(num_string, "%d", num_N*N);
-    const char *mode = "a+";//追加模式，如果不存在，就新建一个
-    MergeString4(filename,user_id,"/data_blocks_file_",num_string,".dat");
-    /**打开已有的data文件*/
-    FILE *data_blocks_file;
-    data_blocks_file = fopen(filename, mode);
-    assert(data_blocks_file != NULL);
-    /**存储data block*/
-    //TODO
-    fwrite(data_block->rec_buf, sizeof(data_block->rec_buf),1,data_blocks_file);
-    //fprintf(data_blocks_file,"%s",data_block->rec_buf);
-    fclose(data_blocks_file);//关闭
+    else //第二个block才是data block
+    {
+        int n_block = (num_data_block  - 2);//第n个，从0 开始，代表第几个block，不包含头
+        /**合并时间戳和data*/
+        unsigned char time_buff[8]={0x00};
+        GetTimeCurrent(time_buff,8);
+        //GetTime(time_buff,n_block);
+
+        unsigned char merge_buff[8+256*1024]={'\0'};
+        //merge_buff[0]='H'; merge_buff[1]='3';
+        for(int i=0;i<8;++i)
+        {
+            merge_buff[i]=time_buff[i];
+        }
+
+        for(int i = 0;i<256*1024;++i)
+        {
+            merge_buff[i+8] = data_block->rec_buf[i+2];
+        }
+
+
+        num_N = n_block/N;//根据有多少个N倍数来命名文件
+        /**定义文件名10个存成一个文件*/
+        char num_string[10];
+        //nu
+        sprintf(num_string, "%d", ADDRESS * N);
+        const char *mode = "a+";//追加模式，如果不存在，就新建一个
+        MergeString2(filename,WORKING_DIR,user_id);
+        MergeString3(filename,"/data_blocks_file_",num_string,".bin");
+        /**验证文件是否存在*/
+        if (!access(filename,0) )
+            printf("file %s  exist\n",filename);
+        else
+            CreateDataFile(filename);
+        /**打开已有的data文件*/
+        FILE *data_blocks_file;
+        data_blocks_file = fopen(filename, mode);
+        assert(data_blocks_file != NULL);
+        /**存储data block*/
+        //TODO
+        fwrite(merge_buff, DATA_BLOCK_SIZE - 4 + 8,1,data_blocks_file);
+        //fwrite(data_block->rec_buf, DATA_BLOCK_SIZE,1,data_blocks_file);
+        fclose(data_blocks_file);//关闭
+        RecordADDRESS();//记录收到第几个block ，绝对地址 16进制，4字节，小端
+        /**当10个block存储完成，修改成我们需要的文件名*/
+        if((n_block % N) == (N-1)||num_data_block == READ_NUMBER) //比如22个，刚好可以打包成一个dat文件
+        //if((n_block % N) == 9 || num_data_block == status.total_blocks_num) //比如11个，刚好可以打包成一个dat文件
+        {
+            char finish_name[100] = {'\0'};
+            MergeString2(finish_name,WORKING_DIR,user_id);
+            MergeString3(finish_name,"/data_blocks_file_",num_string,".dat");
+            rename(filename, finish_name);
+            printf("rename:%s",finish_name);
+        }
+
+    }
     return num_data_block;
 }
 
-void SaveSyncStatusSucess(char const *user)
+void SaveSyncStatusSucess()
 {
-    int serial_to_H3_OK = 1;
-    FILE *sync_status;
-    char num_string[25];
-    MergeString2(num_string,user,"/sync_status.txt");
-    sync_status = fopen(num_string,"w");
-    fprintf(sync_status,"serial_to_H3_OK,%d",serial_to_H3_OK);
-    fclose(sync_status);
+    FILE *count_file;
+    const char *mode = "w";
+    char filename[100]={'\0'};
+   MergeString3(filename, WORKING_DIR,status.user_bind_info.user_id, "/count.txt");
+    /**creat count_file*/
+    if (!access(filename,0))
+        printf("file %s  exist\n",filename);
+    else
+        CreateDataFile(filename);
+    count_file = fopen(filename,mode);//"w" 写，如果文件存在，把文件截断至0长；如果文件不存在，会创建文件
+    assert(count_file != NULL);
+    fprintf(count_file,"{");
+    fprintf(count_file,"\'total blocks\':\'%d\',",status.total_blocks_num);
+    fprintf(count_file,"\'received\':\'%d\',",status.ndata_blocks);
+    fprintf(count_file,"}");
+    fclose(count_file);
     return;
 }
 
@@ -218,6 +255,74 @@ void Log()
     copy = fopen ("log.txt", "w");
     dup2(fileno(copy),1);
     printf ("start time:%s\n",time_str);
+}
+int CheckWORKING_DIR()
+{
+    MergeString2(WORKING_DIR, HOME_DIR,"/user_data/");
+    printf("current usr dir : %s\n", WORKING_DIR);
+    if (!access(WORKING_DIR,0) )
+        printf("current usr dir : %s  exist\n", WORKING_DIR);
+    else
+    {
+        printf("current usr dir : %s  make dir WORKING_DIR\n", WORKING_DIR);
+        mkdir(WORKING_DIR,S_IRWXO|S_IRWXU|S_IRWXG);
+    }
+    return 0;
+}
+void  CreateDataFile(char *filename)
+{
+    if(creat(filename,0755)<0){
+        printf("create file %s failure!\n",filename);
+        //exit(EXIT_FAILURE);
+    }else{
+        printf("create file %s success!\n",filename);
+    }
+}
+int RecordADDRESS()
+{
+
+    char filename[100]={'\0'};
+    const char *mode = "wb";//如果存在，重写
+    MergeString3(filename,WORKING_DIR,status.user_bind_info.user_id,"/ADDRESS.bin");
+    /**验证文件是否存在*/
+    if (!access(filename,0) )
+        printf("file %s  exist\n",filename);
+    else
+        CreateDataFile(filename);
+
+    FILE *address_file;
+    address_file = fopen(filename,mode);
+    unsigned char address_buff[4]={0x00};
+    unsigned char *p=(&ADDRESS);
+    for (int i = 0; i < 4; ++i)
+    {
+        address_buff[i] = *(p+i);
+    }
+    fwrite(address_buff,4,1,address_file);
+    fclose(address_file);
+    return ADDRESS;
+}
+void Rename()
+{
+    char filename[100] = {'\0'} ;
+    MergeString2(filename,WORKING_DIR,status.user_bind_info.user_id);
+    int num_data_block = ADDRESS + 1;//一共多少个，包括数据头
+    int n_block = (num_data_block  - 2);//第n个，从0 开始，代表第几个block，不包含头
+    char num_string[10];
+    int num_N = n_block/N;
+    sprintf(num_string, "%d", num_N * N);
+    MergeString3(filename,"/data_blocks_file_",num_string,".bin");
+
+    if (!access(filename,0))
+    {
+        printf("file *****.bin %s  exist\n",filename);
+        char finish_name[100] = {'\0'};
+        MergeString2(finish_name,WORKING_DIR,status.user_bind_info.user_id);
+        MergeString3(finish_name,"/data_blocks_file_",num_string,".dat");
+        rename(filename, finish_name);
+        printf("rename:%s",finish_name);
+    }
+
 }
 
 #endif //SERIALPROJECT_DIR_H

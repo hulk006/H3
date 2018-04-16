@@ -15,12 +15,14 @@
 
 #include <time.h>
 #include <math.h>
+#include <netdb.h>
 
 #include "data.h"
 #include "dir.h"
 #include "serial.h"
 #include "config.h"
 #include "analyze_head.h"
+#include <arpa/inet.h>
 
 /**
  * @func 把16进制的字符转为字符串：如果小于10就转换成数字，如果大于10就转换为字母
@@ -125,7 +127,7 @@ bool HandleAnswer10NetConfig(const int fd,int answer_length)
         SerialClose(fd,WAIT_TIME_RESTART);
         return false;
     }
-    printf("\nwifiSSID:%s    password:%s",status.net_config.SSID,status.net_config.PWD);
+    printf("\nwifiSSID:%s\npassword:%s\n",status.net_config.SSID,status.net_config.PWD);
     return true;
 }
 /**
@@ -141,10 +143,19 @@ bool HandleAnswer11DeviceInfo( const int fd,const int answer_length)
     {
         if(AnswerIsLegal(device_buf,answer_length))
         {
-            strncpy(status.device_info.name,device_buf+FRAME_HEAD_LENGTH,DEVICE_NAME_LENGTH);
-            //strncpy(status.device_info.serial_no,device_buf + FRAME_HEAD_LENGTH + DEVICE_NAME_LENGTH,DEVICE_SN_LENGTH);
-            strncpy(status.device_info.mac_id,device_buf + FRAME_HEAD_LENGTH + DEVICE_NAME_LENGTH ,
-                    DEVICE_MACID_LENGTH);
+            memset( status.device_info.name,0,DEVICE_NAME_LENGTH);
+            unsigned char temp[14]={'\0'};
+            for (int i = 0; i < DEVICE_NAME_LENGTH; ++i)
+            {
+                status.device_info.name[i]=device_buf[FRAME_HEAD_LENGTH + i];
+                temp[i] = device_buf[FRAME_HEAD_LENGTH + i];
+                printf("%c",status.device_info.name[i]);
+            }
+            printf("temp=%s",temp);
+            for (int i = 0; i < DEVICE_MACID_LENGTH; ++i)
+            {
+                status.device_info.mac_id[i]=device_buf[FRAME_HEAD_LENGTH + DEVICE_NAME_LENGTH+ i];
+            }
         }
         else
         {
@@ -157,10 +168,13 @@ bool HandleAnswer11DeviceInfo( const int fd,const int answer_length)
         SerialClose(fd,WAIT_TIME_RESTART);
         return false;
     }
-    puts("\ndevice info is:");
-    puts(status.device_info.name);
-    //puts(status.device_info.serial_no);
-    puts(status.device_info.mac_id);
+
+    printf("\ndevice info is:%s,%d",status.device_info.name,strlen(status.device_info.name));
+    printf("mac_id:");
+    for (int i = 0; i < DEVICE_MACID_LENGTH; ++i) {
+        printf("%x ",status.device_info.mac_id[i]);
+    }
+    printf("\n");
     return true;
 }
 
@@ -185,7 +199,18 @@ bool HandleAnswer12UserInfo( const int fd, const int answer_length )
                 printf("bind:%x\n",status.user_bind_info.bind);
                 strncpy(user_id,user_buf+FRAME_HEAD_LENGTH,USER_ID_LENGTH);//2 ,12
                 HexToStr(status.user_bind_info.user_id, user_id,answer_length);
-                printf("UID:%s\n",status.user_bind_info.user_id);
+                printf("char:");
+                for(int i=0;i<USER_ID_LENGTH;++i)
+                {
+                    printf("UID:%c ",user_buf[i]);
+                }
+                printf("hex:");
+                for(int i=0;i<USER_ID_LENGTH;++i)
+                {
+                    printf("UID:%x ",user_buf[i]);
+                }
+                printf("sring:");
+                printf("UID:%s\n",user_buf);
             }
             else
             {
@@ -293,6 +318,27 @@ bool HandleAnswer15Status(const int fd, const int answer_length)//需要多次�
 }
 
 
+/**
+ * @brief  发送14命令,告诉盒子发送道起始地址status.n_blocks 16进制的数
+ * @param  fd 串口句柄
+ * @return bool
+*/
+bool Send13Command(const int fd)
+{
+    struct timeval tv;
+    gettimeofday(&tv,NULL);
+
+    long int time = tv.tv_sec;
+    printf("%x\n",time);
+    unsigned char *p = (&time);
+    for (int i = 0; i < 4; ++i)
+    {
+        REUQEST_13_SYNC_TIME[i+4] = *(p+i);
+    }
+    SerialCommand(fd,REUQEST_13_SYNC_TIME,10);
+    printf("command 13 time: %ld\n",time);
+    return true;
+}
 
 /**
  * @brief  发送14命令,告诉盒子发送道起始地址status.n_blocks 16进制的数
@@ -301,15 +347,31 @@ bool HandleAnswer15Status(const int fd, const int answer_length)//需要多次�
 */
 bool Send14Command(const int fd)
 {
-    unsigned char command_14_buf[10]={'H','3',0x14,0x00,0x00,0x00,0x00,0x01,'5','A'};
     int n=0;//16进制转为整数
-    for (int i = 0; i < 3; ++i)
+    unsigned char command_14_buf[10]={'H','3',0x14,0x00,0x00,0x00,0x00,0x01,'5','A'};
+    if(status.ndata_blocks == 0)//读取头文件的命令
     {
-        command_14_buf[i+4] = status.n_blocks[i];
-        n = n + (status.n_blocks[i]<<(i*8));
+        for (int i = 0; i < 3; ++i)
+        {
+            n = n + (status.n_blocks[i]<<(i*8));//nblock为发送地址，现在已经不用了
+        }
+        SerialCommand(fd,command_14_buf,10);
     }
-    SerialCommand(fd,command_14_buf,10);
-    printf("command 14 ：master have receive %d data blocks\n",n);
+    else//读取data block 从1开始
+    {
+        //TODO 通过头文件得到一个
+        ADDRESS = Get_Blocks_Address(status.ndata_blocks - 1) + 1;
+        //ADDRESS++;
+        int n=0;//16进制转为整数
+        unsigned char *p = (&ADDRESS);
+        for (int i = 0; i < 3; ++i)
+        {
+            command_14_buf[i+4] = *(p+i);
+            n = n + (status.n_blocks[i]<<(i*8));//代表已经收到了几个
+        }
+        SerialCommand(fd,command_14_buf,10);
+    }
+    printf("command 14 ：plese send %d data blocks\n", ADDRESS);
     return true;
 }
 /**
@@ -320,14 +382,16 @@ bool Send14Command(const int fd)
 bool Send15Command(const int fd)
 {
     unsigned char command_15_buf[10]={'H','3',0x15,0x00,0x00,0x00,0x00,0x01,'5','A'};
+    //TODO 是否需要加1
     int n=0;//16进制转为整数
+    unsigned char *p = (&ADDRESS);
     for (int i = 0; i < 3; ++i)
     {
-        command_15_buf[i+4] = status.n_blocks[i];//
+        command_15_buf[i+4] = *(p+i);
         n = n + (status.n_blocks[i]<<(i*8));
     }
     SerialCommand(fd,command_15_buf,10);
-    printf("command 15：received %d blocks,please tell me remain N blocks\n",n);
+    printf("command 15：ADDRESS %d canbe delete",ADDRESS);
     return true;
 }
 /**
@@ -406,15 +470,12 @@ int SyncDataProcess(const int fd, const char *working_dir)//心电盒子上传�
     /**循环1：控制 data block 的发送和接收，命令15询问还剩多少个block没有发送，直到只剩下0个的时候停止接收*/
     while(true)
     {
-        /**
-        if(Send15Command(fd)== false) break;//发送命令询问盒子的装状态和还有多少个block才能同步完
-
-        printf("Please input 15 buf :\n");
-        if(!HandleAnswer15Status(fd,8)) return -1;//回到错误从新开始
-        */
-        if(status.ndata_blocks >= status.total_blocks_num)
+        printf("\n need read READ_NUMBER=%d; hanve read ndata_blocks =%d; DATA_NUMBER = %d data blocks in flash",READ_NUMBER,status.ndata_blocks,DATA_NUMBER);
+        if((READ_NUMBER > 1 && status.ndata_blocks >= READ_NUMBER)||(status.ndata_blocks-1) >= DATA_NUMBER)
+        //if(status.ndata_blocks >= status.total_blocks_num)
         {
-            SaveSyncStatusSucess(status.user_bind_info.user_name);/**读取完成*/
+            printf("total:%d,received:%d\n",status.total_blocks_num,status.ndata_blocks);
+            SaveSyncStatusSucess();/**读取完成*/
             printf("remain blocks is 0 ,updated finished\n");
             return 0;
         }
@@ -425,6 +486,7 @@ int SyncDataProcess(const int fd, const char *working_dir)//心电盒子上传�
             //修改命令参数
             ++i;
             if(Send14Command(fd) == false) return -1;//发送命令失败，整体退出
+
             int handle14 = HandleAnswer14SysncData(fd);
 
             if(handle14 == 0)//此次数据接收格式不对，直接退出数据同步程序
@@ -442,12 +504,22 @@ int SyncDataProcess(const int fd, const char *working_dir)//心电盒子上传�
             else//此次数据正常接收，存储并且退出内层循环
             {
                 SaveDataBlocksFile(&data_block,status.user_bind_info.user_id);
-
+                /**收到头文件之后需要进行一些读取文件的操作，获得一共多少个blocks*/
                 if(status.ndata_blocks == 1)/**ndata_blocks初始化为0*/
                 {
+                    //GetTheNumber()
+                    DATA_NUMBER = Get_Dynamic_Data_Header(dynamic_data_header);
+                    printf("\n ******allDATA_NUMBER =%d\n",DATA_NUMBER);
                     status.total_blocks_num = GetTotalBlocksNum(working_dir,status.user_bind_info.user_id);/**从第一block中读取总的blocks数量*/
-                    printf("一共：%d blocks",status.total_blocks_num);
+                    printf("all：%d blocks can be save in flash\n",status.total_blocks_num);
                 }
+                else
+                {
+                    printf("\n **15 delete :");
+                    Send15Command(fd);//发送命令删除同步完成的block
+                    sleep(2);//删除之后等待两秒
+                }
+
                 break;//一次数据同步结束，退出循环2
             }
         }
@@ -458,4 +530,27 @@ int SyncDataProcess(const int fd, const char *working_dir)//心电盒子上传�
 //TODO...
 //写文件头
 
+
+int CheckWifiConnect(char *host_name)
+{
+    struct hostent *url = NULL;
+
+    url = gethostbyname(host_name);
+    if(url == NULL)
+    {
+        printf("Pingtest Failed!\n");
+        return 0;
+    }
+    else if(!strcmp("10.10.0.1",inet_ntoa(*((struct in_addr *)url->h_addr))))
+    {
+        printf("DNS cheat!\n");
+        return 0;
+    }
+    else
+    {
+        printf("IP Address : %s\n",inet_ntoa(*((struct in_addr *)url->h_addr)));
+        printf("Pingtest OK!\n");
+        return 1;
+    }
+}
 #endif //SERIALPROJECT_PROTOCOL_H

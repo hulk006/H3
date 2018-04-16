@@ -208,10 +208,28 @@ int main() {
     //write_int();
     //write_string();
     //read_string();
+    setvbuf(stdout,NULL,_IONBF,0); //如果你嫌上个方法麻烦, 就使用这个函数. 直接将缓冲区禁止了. 它就直接输出了.
     long int test = 1513668063233;
-    long int a=0x6da5b001;
-    unsigned char *test_char;
+     int a =0x3e45 ;
 
+    int *b= (&a);
+    int *c = (&a+1);
+
+    uint8_t p = *b;
+
+    uint8_t p1 = *b+1;
+
+    printf("%x",p1);
+    int nValue = 10;
+    float fValue = 10.0f;
+    char cValue = 'C';
+    int *pnValue = &nValue;
+
+    float *pfValue = &fValue;
+    char *pcValue = &cValue;
+    printf("pnValue = %x, *pnValue = %d\n", pnValue, *pnValue);
+    printf("pfValue = %x, *pfValue = %f\n", pfValue, *pfValue);
+    printf("pcValue = %x, *pcValue = %c\n", pcValue, *pcValue);
 
 
 
@@ -220,6 +238,10 @@ int main() {
     test_file = fopen("a.bin","wb");
     fwrite( &test,8,1,test_file);
     fclose(test_file);
+
+
+
+
 
     std::cout << "Hello, World!" << std::endl;
     return 0;

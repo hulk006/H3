@@ -4,10 +4,9 @@
 
 #ifndef READ_DATA_BLOCK_DATA_SRUCT_H
 #define READ_DATA_BLOCK_DATA_SRUCT_H
-#pragma pack(1)
+#pragma pack(4)
 
 #include <cstdint>
-
 typedef struct static_data_block
 {
     uint16_t static_data_length; 		// static data block 的有效数据长度，以 byte 做单位不包括本字段的长度
@@ -48,8 +47,53 @@ typedef struct static_data_block
     uint16_t sensor_save_block;
     uint16_t resp_save_block;
     uint16_t alarm_save_block;
-} STATIC_DATA_BLOCK;
+}STATIC_DATA_BLOCK;
+
+// Dyanmic data
+typedef struct dynamic_data_header
+{
+    uint8_t type; // 1-ECG data, 2-Breath data, 3-G sensor data, 4-Status data
+    union Flag
+    {
+        uint8_t flag;
+        struct Effect
+        {
+            uint8_t effect:1; // 该 data block 是否有效 0-not effective 1-effective
+            uint8_t reserved:7;
+        };
+        struct Effect effect;
+    };
+
+    uint8_t start_time[8];
+    uint8_t reserved1[2];
+    uint32_t start_addr; 	// Start address(定义为Block的编号从1开始，依次累加)
+    uint32_t length; 		//
+    uint32_t checksum; 		// 所有 data 相加的和
+}DYNAMIC_DATA_HEADER;
+
+// ECG data block
+typedef struct ecg_data
+{
+    uint32_t ecg_data1;
+    uint32_t ecg_data2;
+}ECG_DATA;
+
+// Breath data block
+typedef struct ecg_breath_data
+{
+    uint32_t ecg_data1;
+    uint32_t breath_data;
+}ECG_BREATH_DATA;
+
+// G sensor data block
+
 
 #pragma pack()
+
+
+
+
+
+
 
 #endif //READ_DATA_BLOCK_DATA_SRUCT_H
