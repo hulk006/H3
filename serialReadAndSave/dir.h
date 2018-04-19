@@ -15,11 +15,33 @@
 #include "data.h"
 #include "analyze_head.h"
 #include "protocol.h"
+#include <sys/stat.h>
+#include <dirent.h>
 
 #define HEAD_POSTFIX ".HEAD"
 #define ACCESS access
 #define MKDIR(a) mkdir((a),0755)
 #define HOME_DIR (getpwuid(getuid())->pw_dir)
+
+float GetDirSize(const char* path)
+{
+    DIR *dir;
+    float size=0;
+    dir = opendir(path);
+    struct dirent *ptr;
+    while((ptr = readdir(dir)) != NULL)
+    {
+        char filename[100]={'\0'};
+        struct stat stat_buff;
+        MergeString2(filename,path,ptr->d_name);
+        stat(filename,&stat_buff);
+        size += stat_buff.st_size;
+    }
+    closedir(dir);
+    return size/(1024*1024);
+}
+
+
 /**
  * @func 把当前的时间转换成时间戳
  * @param
@@ -104,7 +126,6 @@ int SaveHeadFile( struct Status const *input_tatus)
     /**打开已有的data文件*/
     head_file = fopen(filename,mode);//"w" 写，如果文件存在，把文件截断至0长；如果文件不存在，会创建文件
     assert(head_file != NULL);
-    printf("saving user info:\n");
     fprintf(head_file,"{");
     fprintf(head_file,"\'userId\':\'%s\',",input_tatus->user_bind_info.user_id);
     fprintf(head_file,"\'bindState\':\'%d\',",input_tatus->user_bind_info.bind);
@@ -252,7 +273,15 @@ void Log()
     FILE *copy;
     int bak_out = dup(1);// can use fileno(stdout) to replace 1
     printf ("OPEN LOG%d\n",bak_out);
-    copy = fopen ("log.txt", "w");
+    //char *filename = "serial_read_save.log";
+    char *filename = "/root/log/serial_read_save.log";
+    /**验证文件是否存在*/
+    if (!access(filename,0) )
+        printf("file %s  exist\n",filename);
+    else
+        CreateDataFile(filename);
+    /**打开已有的data文件*/
+    copy = fopen (filename, "a+");
     dup2(fileno(copy),1);
     printf ("start time:%s\n",time_str);
 }

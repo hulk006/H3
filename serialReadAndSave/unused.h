@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <sys/param.h>
 #include <sys/stat.h>
+#include "dir.h"
 
 
 void init_daemon(void)

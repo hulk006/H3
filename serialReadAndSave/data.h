@@ -78,8 +78,8 @@ struct Status status={
                 .name = "device name",
         },
         .net_config = {
-                .SSID = {'l','e','n','o','v','o'},
-                .PWD = {'1','2','3','4','5','6','7','8','9'},
+                .SSID ="YHtest",
+                .PWD ="qwertyuiop",
         },
         .n_blocks={0x00,0x00,0x00},
         .n_remain_blocks={0xff,0xff,0xff},

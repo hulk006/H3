@@ -115,6 +115,7 @@ bool HandleAnswer10NetConfig(const int fd,int answer_length)
             memset(status.net_config.PWD,0, sizeof(status.net_config.PWD));
             strncpy(status.net_config.SSID ,net_buf+FRAME_HEAD_LENGTH,SSID_LENGTH);
             strncpy(status.net_config.PWD ,net_buf+FRAME_HEAD_LENGTH+SSID_LENGTH,PWD_LENGTH);
+
         }
         else
         {
@@ -188,7 +189,6 @@ bool HandleAnswer12UserInfo( const int fd, const int answer_length )
 {
     unsigned char user_buf[33]={'\0'};
     int read_result = SerialRead(fd, user_buf, answer_length, WAIT_TIME_RECV);
-    unsigned char user_id[12]={0x00};
     if (read_result > 0)//正常读取到数据
     {
         if(AnswerIsLegal(user_buf,answer_length))
@@ -196,26 +196,24 @@ bool HandleAnswer12UserInfo( const int fd, const int answer_length )
             status.user_bind_info.bind = user_buf[FRAME_HEAD_LENGTH + USER_ID_LENGTH];//2 12 16,
             if(status.user_bind_info.bind == 1)
             {
-                printf("bind:%x\n",status.user_bind_info.bind);
-                strncpy(user_id,user_buf+FRAME_HEAD_LENGTH,USER_ID_LENGTH);//2 ,12
-                HexToStr(status.user_bind_info.user_id, user_id,answer_length);
-                printf("char:");
-                for(int i=0;i<USER_ID_LENGTH;++i)
+                memset(status.user_bind_info.user_id,0, sizeof(status.user_bind_info.user_id));
+                for (int i = 0; i < USER_ID_LENGTH; ++i)
                 {
-                    printf("UID:%c ",user_buf[i]);
+                    status.user_bind_info.user_id[i]=user_buf[FRAME_HEAD_LENGTH + i];
                 }
-                printf("hex:");
-                for(int i=0;i<USER_ID_LENGTH;++i)
-                {
-                    printf("UID:%x ",user_buf[i]);
-                }
-                printf("sring:");
-                printf("UID:%s\n",user_buf);
+                printf("%s",status.user_bind_info.user_id);
             }
             else
             {
                 puts("a unbind user id ,please bind ,then upload ...");
                 ////如果未绑定，不需要同步云端，给一个固定的UID,unbinduser
+                memset(status.net_config.SSID,0, sizeof(status.net_config.SSID));
+                memset(status.net_config.PWD,0, sizeof(status.net_config.PWD));
+                char *ssid="YHtest";
+                char *key="qwertyuiop";
+                strncpy(status.net_config.SSID ,ssid,SSID_LENGTH);
+                strncpy(status.net_config.PWD ,key,PWD_LENGTH);
+                printf("\ndefault:wifiSSID:%s\npassword:%s\n",status.net_config.SSID,status.net_config.PWD);
             }
         }
         else
@@ -395,6 +393,35 @@ bool Send15Command(const int fd)
     return true;
 }
 /**
+ * @brief  发送15命令,询问盒子还剩多少个block没发送完
+ * @param  fd 串口句柄
+ * @return bool
+*/
+bool Send15SyncFinishedCommand(const int fd)
+{
+    unsigned char command_15_buf[10]={'H','3',0x15,0x00,0xff,0xff,0xff,0x01,'5','A'};
+    SerialCommand(fd,command_15_buf,10);
+    printf("*********************command 15：finished sync***********************************************");
+    return true;
+}
+bool DeleteDataBloack(const int fd,int start,int end)
+{
+    unsigned char command_15_buf[10]={'H','3',0x15,0x00,0xff,0xff,0xff,0x01,'5','A'};
+    int num=0;
+    for(num = start;num < end;++num)
+    {
+        for (int i = 0; i < 3; ++i)
+        {
+            unsigned char *p = (&num);
+            command_15_buf[i+4] = *(p+i);
+        }
+        SerialCommand(fd,command_15_buf,10);
+        printf("command 15：ADDRESS %d canbe delete",num);
+        sleep(1);
+    }
+    return true;
+}
+/**
  * @brief 循环读取一个或者多个block
  * @param fd 串口的句柄
  * @return 读取到字节数,-1 代表传输错误，0代表不合法
@@ -472,11 +499,10 @@ int SyncDataProcess(const int fd, const char *working_dir)//心电盒子上传�
     {
         printf("\n need read READ_NUMBER=%d; hanve read ndata_blocks =%d; DATA_NUMBER = %d data blocks in flash",READ_NUMBER,status.ndata_blocks,DATA_NUMBER);
         if((READ_NUMBER > 1 && status.ndata_blocks >= READ_NUMBER)||(status.ndata_blocks-1) >= DATA_NUMBER)
-        //if(status.ndata_blocks >= status.total_blocks_num)
         {
+            Send15SyncFinishedCommand(fd);//发送同步完成
             printf("total:%d,received:%d\n",status.total_blocks_num,status.ndata_blocks);
             SaveSyncStatusSucess();/**读取完成*/
-            printf("remain blocks is 0 ,updated finished\n");
             return 0;
         }
         /***********************************************************************************************/
@@ -485,8 +511,11 @@ int SyncDataProcess(const int fd, const char *working_dir)//心电盒子上传�
         {
             //修改命令参数
             ++i;
-            if(Send14Command(fd) == false) return -1;//发送命令失败，整体退出
-
+            char user_dir[100]={'\0'};
+            MergeString3(user_dir,WORKING_DIR,status.user_bind_info.user_id,"/");
+            float user_dir_size = GetDirSize(user_dir);
+            if(user_dir_size > 4 || Send14Command(fd) == false) return -1;//发送命令失败，整体退出
+            printf("user_dir_size=%f MB\n",user_dir_size);
             int handle14 = HandleAnswer14SysncData(fd);
 
             if(handle14 == 0)//此次数据接收格式不对，直接退出数据同步程序
@@ -517,7 +546,7 @@ int SyncDataProcess(const int fd, const char *working_dir)//心电盒子上传�
                 {
                     printf("\n **15 delete :");
                     Send15Command(fd);//发送命令删除同步完成的block
-                    sleep(2);//删除之后等待两秒
+                    sleep(1);//删除之后等待两秒
                 }
 
                 break;//一次数据同步结束，退出循环2
@@ -538,8 +567,66 @@ int CheckWifiConnect(char *host_name)
     url = gethostbyname(host_name);
     if(url == NULL)
     {
+        char *ping_test="ping -c1 www.baidu.com";
         printf("Pingtest Failed!\n");
-        return 0;
+        char *ssid = status.net_config.SSID;
+
+        char *pwd = status.net_config.PWD;
+        printf("wifi_ssid:%s wifi_key:%s\n" ,ssid,pwd);
+        char set_ssid[100]={'\0'};
+        MergeString2(set_ssid, "uci set wireless.@wifi-iface[1].ssid=",ssid);
+
+        char set_key[100]={'\0'};
+        MergeString2(set_key, "uci set wireless.@wifi-iface[1].key=",pwd);
+
+        int test=system(set_ssid);
+        printf("set_ssid:%s\n" ,set_ssid);
+        printf("test=%d\n",test);
+        if(test==0)
+        {
+            system(set_key);
+        }
+        else
+        {
+            char *add_sta = "uci add /etc/config/wireless wifi-iface";
+            system(add_sta);
+            printf("add_sta:%s\n" ,add_sta);
+            char *set_device = "uci set wireless.@wifi-iface[1].device=radio0";
+            system(set_device);
+            printf("set_device:%s\n" ,set_device);
+            char *set_mode = "uci set wireless.@wifi-iface[1].mode=sta";
+            system(set_mode);
+            printf("set_mode:%s\n" ,set_mode);
+            char *set_network = "uci set wireless.@wifi-iface[1].network=wwan";
+            system(set_network);
+            printf("set_network:%s\n" ,set_network);
+            char *set_encryption = "uci set wireless.@wifi-iface[1].encryption=psk2";
+            system(set_encryption);
+            printf("set_encryption:%s\n" ,set_encryption);
+
+            system(set_ssid);
+            system(set_key);
+            printf("ok:%s\n" ,set_encryption);
+        }
+        char *commit = "uci commit wireless";
+        char *wifi_restart = "/etc/init.d/network restart";
+        system(commit);
+        system(wifi_restart);
+        printf("commit:%s\n" ,commit);
+        printf("wifi_restart:%s\n" ,wifi_restart);
+
+        sleep(80);
+        int tmp = -1;
+        for(int i=0;i<3;i++)
+        {
+            tmp = system(ping_test);
+            if (tmp == 0)
+            {
+                return 1;
+            }
+        }
+
+        return 0;//failed
     }
     else if(!strcmp("10.10.0.1",inet_ntoa(*((struct in_addr *)url->h_addr))))
     {
