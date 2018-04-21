@@ -87,13 +87,13 @@ bool HandleAnswer01Isready(const int fd, const int answer_length)
         }
         else
         {
-            SerialClose(fd,WAIT_TIME_RESTART);
+            //SerialClose(fd,WAIT_TIME_RESTART);
             return false;
         }
     }
     else // 读取错误,读取超时 重新发送指令
     {
-        SerialClose(fd,WAIT_TIME_RESTART);
+        //SerialClose(fd,WAIT_TIME_RESTART);
         return false;
     }
     return true;
@@ -119,13 +119,13 @@ bool HandleAnswer10NetConfig(const int fd,int answer_length)
         }
         else
         {
-            SerialClose(fd,WAIT_TIME_RESTART);
+            //SerialClose(fd,WAIT_TIME_RESTART);
             return false;
         }
     }
     else // 读取错误,读取超时 重新发送指令
     {
-        SerialClose(fd,WAIT_TIME_RESTART);
+        //SerialClose(fd,WAIT_TIME_RESTART);
         return false;
     }
     printf("\nwifiSSID:%s\npassword:%s\n",status.net_config.SSID,status.net_config.PWD);
@@ -145,14 +145,11 @@ bool HandleAnswer11DeviceInfo( const int fd,const int answer_length)
         if(AnswerIsLegal(device_buf,answer_length))
         {
             memset( status.device_info.name,0,DEVICE_NAME_LENGTH);
-            unsigned char temp[14]={'\0'};
             for (int i = 0; i < DEVICE_NAME_LENGTH; ++i)
             {
                 status.device_info.name[i]=device_buf[FRAME_HEAD_LENGTH + i];
-                temp[i] = device_buf[FRAME_HEAD_LENGTH + i];
                 printf("%c",status.device_info.name[i]);
             }
-            printf("temp=%s",temp);
             for (int i = 0; i < DEVICE_MACID_LENGTH; ++i)
             {
                 status.device_info.mac_id[i]=device_buf[FRAME_HEAD_LENGTH + DEVICE_NAME_LENGTH+ i];
@@ -160,13 +157,13 @@ bool HandleAnswer11DeviceInfo( const int fd,const int answer_length)
         }
         else
         {
-            SerialClose(fd,WAIT_TIME_RESTART);
+            //SerialClose(fd,WAIT_TIME_RESTART);
             return false;
         }
     }
     else // 读取错误,读取超时 重新发送指令
     {
-        SerialClose(fd,WAIT_TIME_RESTART);
+        //SerialClose(fd,WAIT_TIME_RESTART);
         return false;
     }
 
@@ -218,13 +215,13 @@ bool HandleAnswer12UserInfo( const int fd, const int answer_length )
         }
         else
         {
-            SerialClose(fd,WAIT_TIME_RESTART);
+            //SerialClose(fd,WAIT_TIME_RESTART);
             return false;
         }
     }
     else // 读取错误,读取超时 重新发送指令
     {
-        SerialClose(fd,WAIT_TIME_RESTART);
+        //SerialClose(fd,WAIT_TIME_RESTART);
         return false;
     }
     return true;
@@ -258,16 +255,15 @@ bool HandleAnswer13SysncTime(const int fd,const int answer_length)//需要多次
         }
         else
         {
-            SerialClose(fd,WAIT_TIME_RESTART);
+            //SerialClose(fd,WAIT_TIME_RESTART);
             return false;
         }
     }
     else // 读取错误,读取超时 重新发送指令
     {
-        SerialClose(fd,WAIT_TIME_RESTART);
+        //SerialClose(fd,WAIT_TIME_RESTART);
         return false;
     }
-    printf("time:%s\n",status.update_time);
     printf("reponse:%d\n",status.time_sync_state);
     return true;
 }
@@ -302,16 +298,16 @@ bool HandleAnswer15Status(const int fd, const int answer_length)//需要多次�
         }
         else
         {
-            SerialClose(fd,WAIT_TIME_RESTART);
+            //SerialClose(fd,WAIT_TIME_RESTART);
             return false;
         }
     }
     else // 读取错误,读取超时 重新发送指令
     {
-        SerialClose(fd,WAIT_TIME_RESTART);
+        //SerialClose(fd,WAIT_TIME_RESTART);
         return false;
     }
-    printf("盒子剩余%d data blocks", status.remain_blocks);
+    printf("remain_blocks :%d data blocks", status.remain_blocks);
     return true;
 }
 
@@ -327,7 +323,6 @@ bool Send13Command(const int fd)
     gettimeofday(&tv,NULL);
 
     long int time = tv.tv_sec;
-    printf("%x\n",time);
     unsigned char *p = (&time);
     for (int i = 0; i < 4; ++i)
     {
@@ -433,6 +428,7 @@ int HandleAnswer14SysncData(const int fd)
     memset(data_block.rec_buf,'\0', sizeof(data_block.rec_buf));
     int read_result = SerialReadDataBlock(fd,data_block.rec_buf,rec_buf_size, WAIT_TIME_RECV);
     printf("data block have %d Bytes\n", read_result);
+
     if(read_result >= 0)
     {
         if(AnswerIsLegal(data_block.rec_buf,read_result))
@@ -609,13 +605,13 @@ int CheckWifiConnect(char *host_name)
             printf("ok:%s\n" ,set_encryption);
         }
         char *commit = "uci commit wireless";
-        char *wifi_restart = "/etc/init.d/network restart";
+        char *wifi_restart = "wifi reload";
         system(commit);
         system(wifi_restart);
         printf("commit:%s\n" ,commit);
         printf("wifi_restart:%s\n" ,wifi_restart);
 
-        sleep(80);
+        sleep(30);
         int tmp = -1;
         for(int i=0;i<3;i++)
         {

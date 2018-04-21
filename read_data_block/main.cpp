@@ -2,6 +2,11 @@
 #include <zconf.h>
 #include <sys/time.h>
 #include "data_sruct.h"
+
+DYNAMIC_DATA_HEADER dynamic_data_header[1000]={'\0'};
+int DATA_NUMBER = 0;
+
+
 void Log()
 {
     //获取时间当前时间
@@ -39,6 +44,43 @@ DYNAMIC_DATA_HEADER * GetDYNAMIC_DATA_HEADER(DYNAMIC_DATA_HEADER *dynamic_data_h
 }
 
 
+int Get_Dynamic_Data_Header(DYNAMIC_DATA_HEADER *dynamic_data_header_all)
+{
+
+    FILE* infile;
+    char file_name[100]={'\0'};
+    //MergeString3(file_name,WORKING_DIR,status.user_bind_info.user_id,"/data_blocks_file_head.HEAD");
+    infile = fopen("/home/yh/user_data/unbinduser/data_blocks_file_head.HEAD", "rb");
+    if(infile == NULL )
+    {
+        printf("not exit/n");
+        exit(1);
+    }
+    int rc = 0;
+    unsigned char read_buf[66000] = {'\0'};
+    rc = fread(read_buf,66000,1 ,infile);
+    for (int i = 0; i < 1000; ++ i)
+    {
+        DYNAMIC_DATA_HEADER *dynamic_data_header;
+        dynamic_data_header = (DYNAMIC_DATA_HEADER *)(read_buf + 2 + sizeof(STATIC_DATA_BLOCK)+i*sizeof(DYNAMIC_DATA_HEADER));
+        if (dynamic_data_header->checksum == 305419896)
+        {
+            DATA_NUMBER ++;
+            dynamic_data_header_all[i]=*dynamic_data_header;
+        }
+        else{
+            break;
+        }
+    }
+    return DATA_NUMBER;
+}
+
+uint32_t Get_Blocks_Address(int index)
+{
+    uint32_t address = dynamic_data_header[index].start_addr;
+    return address;
+
+}
 
 
 
@@ -48,7 +90,7 @@ int main() {
     printf ("This is printed to a file!\n");
     STATIC_DATA_BLOCK *data_block ;
     FILE *infile;
-    infile = fopen("/home/yh/user_data/unbinduser/data_blocks_file_head.HEAD", "rb");
+    infile = fopen("/home/yh/check_data/data_blocks_file_head.HEAD", "rb");
     if(infile == NULL )
     {
         printf("not exit/n");
@@ -63,6 +105,15 @@ int main() {
     printf("%s\n",hw_ver);
     u_int16_t a = data_block->nand_block_num;
     printf("%d\n",a);
+    Get_Dynamic_Data_Header(dynamic_data_header);
+    for (int j = 0; j < DATA_NUMBER; ++j)
+    {
+        uint32_t address = dynamic_data_header[j].start_addr;
+        uint8_t type = dynamic_data_header[j].type;
+
+        printf("address=%d type = %d\n",address,type);
+
+    }
 
 
     DYNAMIC_DATA_HEADER *dynamic_data_header_0;
@@ -71,47 +122,6 @@ int main() {
     DYNAMIC_DATA_HEADER *dynamic_data_header_1;
     dynamic_data_header_1 = GetDYNAMIC_DATA_HEADER(dynamic_data_header_1,1,read_buf);
     address = dynamic_data_header_0->start_addr;
-
-
-    dynamic_data_header_0 = (DYNAMIC_DATA_HEADER *)(read_buf + 2 + sizeof(STATIC_DATA_BLOCK));
-    uint8_t *time0 = dynamic_data_header_0->start_time;
-    DYNAMIC_DATA_HEADER *dynamic_data_header_2;
-    dynamic_data_header_2 = GetDYNAMIC_DATA_HEADER(dynamic_data_header_0,2,read_buf);
-    DYNAMIC_DATA_HEADER *dynamic_data_header_3;
-    dynamic_data_header_3 = GetDYNAMIC_DATA_HEADER(dynamic_data_header_0,3,read_buf);
-
-    for(int i=0;i<8;i++)
-    {
-        printf("%x",dynamic_data_header_0->start_time[i]);
-    }
-    printf("\n");
-
-    int check0 = dynamic_data_header_0->checksum;
-    printf("1111:");
-    printf("%x\n",check0);
-
-    int check1=dynamic_data_header_1->checksum;
-    printf("2222:");
-    printf("%x\n",check1);
-    fclose(infile);
-
-
-
-    infile = fopen("/home/yh/user_data/unbinduser/data_blocks_file_0.dat", "rb");
-    unsigned char data_buf[102];
-    rc = fread(data_buf,5,1 ,infile);
-
-    for(int i=0;i<102;i++)
-    {
-        printf("%x ",data_buf[i]);
-    }
-
-
-
-
-
-
-
 
 
 

@@ -17,6 +17,9 @@ DYNAMIC_DATA_HEADER * GetDYNAMIC_DATA_HEADER(DYNAMIC_DATA_HEADER *dynamic_data_h
 
 int Get_Dynamic_Data_Header(DYNAMIC_DATA_HEADER *dynamic_data_header_all)
 {
+    int a= sizeof(*dynamic_data_header_all);
+    memset(dynamic_data_header_all,0, 2048*sizeof(DYNAMIC_DATA_HEADER));
+
 
     FILE* infile;
     char file_name[100]={'\0'};
@@ -44,7 +47,6 @@ int Get_Dynamic_Data_Header(DYNAMIC_DATA_HEADER *dynamic_data_header_all)
         }
     }
     return DATA_NUMBER;
-
 }
 uint32_t Get_Blocks_Address(int index)
 {

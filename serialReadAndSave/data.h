@@ -179,12 +179,14 @@ typedef struct ecg_breath_data
 }ECG_BREATH_DATA;
 #pragma pack()
 
-DYNAMIC_DATA_HEADER dynamic_data_header[1000]={'\0'};
+DYNAMIC_DATA_HEADER dynamic_data_header[2048]={'\0'};
+
 int DATA_NUMBER = 0;
 
 
 void InitStatus()
 {
+    DATA_NUMBER = 0;
     status.state = 0;//
     status.time_sync_state = 0;//
     status.once_data_sync_state = 0;

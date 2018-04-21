@@ -133,10 +133,10 @@ int SaveHeadFile( struct Status const *input_tatus)
     //TODO 设备登录道时候需要的变量
     fprintf(head_file,"\'token\':\'111\',");
 
-    //fprintf(head_file,"\'wifiName\':\'%s\',",input_tatus->net_config.SSID);
-    //fprintf(head_file,"\'wifiPassword\':\'%s\',",input_tatus->net_config.PWD);
-    fprintf(head_file,"\'wifiName\':\'%s\',","YHtest");
-    fprintf(head_file,"\'wifiPassword\':\'%s\',","qwertyuiop");
+    fprintf(head_file,"\'wifiName\':\'%s\',",input_tatus->net_config.SSID);
+    fprintf(head_file,"\'wifiPassword\':\'%s\',",input_tatus->net_config.PWD);
+    //fprintf(head_file,"\'wifiName\':\'%s\',","YHtest");
+    //fprintf(head_file,"\'wifiPassword\':\'%s\',","qwertyuiop");
     fprintf(head_file,"}");
     //TODO
     fclose(head_file);
@@ -235,7 +235,6 @@ int SaveDataBlocksFile(const struct DataBlock *data_block,  char const *user_id)
             rename(filename, finish_name);
             printf("rename:%s",finish_name);
         }
-
     }
     return num_data_block;
 }
@@ -272,7 +271,7 @@ void Log()
     strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M", now_time);
     FILE *copy;
     int bak_out = dup(1);// can use fileno(stdout) to replace 1
-    printf ("OPEN LOG%d\n",bak_out);
+    printf ("OPEN LOG%d\n", bak_out);
     //char *filename = "serial_read_save.log";
     char *filename = "/root/log/serial_read_save.log";
     /**验证文件是否存在*/
