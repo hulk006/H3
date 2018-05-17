@@ -4,9 +4,8 @@
 
 #ifndef READ_DATA_BLOCK_DATA_SRUCT_H
 #define READ_DATA_BLOCK_DATA_SRUCT_H
-#pragma pack(4)
+#pragma pack(4)		// 数据的开始地址必须四字节对其，这是FDS要求的
 
-#include <cstdint>
 typedef struct static_data_block
 {
     uint16_t static_data_length; 		// static data block 的有效数据长度，以 byte 做单位不包括本字段的长度
@@ -43,10 +42,10 @@ typedef struct static_data_block
     uint32_t nand_block_size;	// block 大小
     uint16_t nand_page_size;	// 页大小
 
-    uint16_t ecg_save_block;
-    uint16_t sensor_save_block;
-    uint16_t resp_save_block;
-    uint16_t alarm_save_block;
+    int16_t ecg_save_block;	// 当前心电数据正在写入的Blcok
+    int16_t sensor_save_block;
+    int16_t resp_save_block;
+    int16_t alarm_save_block;
 }STATIC_DATA_BLOCK;
 
 // Dyanmic data
@@ -66,16 +65,16 @@ typedef struct dynamic_data_header
 
     uint8_t start_time[8];
     uint8_t reserved1[2];
-    uint32_t start_addr; 	// Start address(定义为Block的编号从1开始，依次累加)
-    uint32_t length; 		//
-    uint32_t checksum; 		// 所有 data 相加的和
+    uint32_t start_addr; 	// 当前Block number
+    uint32_t length; 		// 当前Block中储存有效数据长度
+    uint32_t checksum; 		//
 }DYNAMIC_DATA_HEADER;
 
 // ECG data block
 typedef struct ecg_data
 {
-    uint32_t ecg_data1;
-    uint32_t ecg_data2;
+    uint16_t ecg_data1;
+    uint16_t ecg_data2;
 }ECG_DATA;
 
 // Breath data block
@@ -86,9 +85,15 @@ typedef struct ecg_breath_data
 }ECG_BREATH_DATA;
 
 // G sensor data block
-
+typedef struct g_sensor_data
+{
+    uint16_t x;
+    uint16_t y;
+    uint16_t z;
+}G_SENSOR_DATA;
 
 #pragma pack()
+
 
 
 

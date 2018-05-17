@@ -17,7 +17,6 @@ DYNAMIC_DATA_HEADER * GetDYNAMIC_DATA_HEADER(DYNAMIC_DATA_HEADER *dynamic_data_h
 
 int Get_Dynamic_Data_Header(DYNAMIC_DATA_HEADER *dynamic_data_header_all)
 {
-    int a= sizeof(*dynamic_data_header_all);
     memset(dynamic_data_header_all,0, 2048*sizeof(DYNAMIC_DATA_HEADER));
 
 
@@ -51,28 +50,17 @@ int Get_Dynamic_Data_Header(DYNAMIC_DATA_HEADER *dynamic_data_header_all)
 uint32_t Get_Blocks_Address(int index)
 {
     uint32_t address = dynamic_data_header[index].start_addr;
+    printf("***********address=%d******************",address);
     return address;
 
 }
 
-unsigned char * GetTime(unsigned char *time,int address)
+unsigned char * GetTime(unsigned char *time,int index)
 {
-
-    FILE* infile;
-    char file_name[100]={'\0'};
-    MergeString3(file_name,WORKING_DIR,status.user_bind_info.user_id,"/data_blocks_file_head.HEAD");
-    infile = fopen(file_name, "rb");
-    if(infile == NULL )
-    {
-        printf("not exit/n");
-        exit(1);
+    for (int i = 0; i < 8; ++i) {
+        time[i] = dynamic_data_header[index].start_time[i];
     }
-    int rc = 0;
-    unsigned char read_buf[66000] = {'\0'};
-    rc = fread(read_buf,66000,1 ,infile);
-    DYNAMIC_DATA_HEADER *dynamic_data_header;
-    dynamic_data_header = (DYNAMIC_DATA_HEADER *)(read_buf + 2 + sizeof(STATIC_DATA_BLOCK)+address*sizeof(DYNAMIC_DATA_HEADER));
-    time = dynamic_data_header->start_time;
+
     return time;
 }
 

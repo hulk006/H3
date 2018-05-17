@@ -202,7 +202,79 @@ int main(void)
 
 */
 
-
+int getdeviceID(const unsigned char *input,char *out,int length)
+{
+    for (int i = 0; i < length; ++i) {
+        int high = 0x00;
+        int low = 0x00;
+        high = (input[i] & 0xf0) / 16;
+        low = input[i] & 0x0f;
+        if (high >= 0 && high < 16)
+        {
+            char tmp='0';
+            switch (high) {
+                case 10:
+                    tmp='A';
+                    break;
+                case 11:
+                    tmp='B';
+                    break;
+                case 12:
+                    tmp='C';
+                    break;
+                case 13:
+                    tmp='D';
+                    break;
+                case 14:
+                    tmp='E';
+                    break;
+                case 15:
+                    tmp='F';
+                    break;
+                default:
+                    tmp= high + '0';
+                    break;
+            }
+            out[2*i]=tmp;
+        }
+        else
+        {
+            printf("error,chang");
+            return -1;
+        }
+        if (low >= 0 && low < 16) {
+            char tmp='0';
+            switch (low) {
+                case 10:
+                    tmp='A';
+                    break;
+                case 11:
+                    tmp='B';
+                    break;
+                case 12:
+                    tmp='C';
+                    break;
+                case 13:
+                    tmp='D';
+                    break;
+                case 14:
+                    tmp='E';
+                    break;
+                case 15:
+                    tmp='F';
+                    break;
+                default:
+                    tmp= low + '0';
+                    break;
+            }
+            out[2*i+1]=tmp;
+        }
+        else {
+            printf("error,change");
+            return -1;
+        }
+    }
+}
 int main() {
     //test_endian();
     //write_int();
@@ -232,8 +304,13 @@ int main() {
     printf("pcValue = %x, *pcValue = %c\n", pcValue, *pcValue);
 
 
+    unsigned char Hex_char[6]={0x48,0x33,0x00,0x35,'5','A'};
+    char deviceid[13]={'0'};
+    getdeviceID(Hex_char,deviceid,6);
 
-    char Hex_char[8];
+
+
+
     FILE *test_file;
     test_file = fopen("a.bin","wb");
     fwrite( &test,8,1,test_file);

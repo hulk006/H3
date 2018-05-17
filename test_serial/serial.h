@@ -1,9 +1,9 @@
 //
-// Created by Yanghao on 18-1-23.
-// 串口到操作
+// Created by yh on 5/16/18.
 //
-#ifndef SERIALPROJECT_SERIAL_H
-#define SERIALPROJECT_SERIAL_H
+
+#ifndef TEST_SERIAL_SERIAL_H
+#define TEST_SERIAL_SERIAL_H
 
 #include <sys/types.h>
 #include <stdio.h>
@@ -462,4 +462,5 @@ int open_port(const char *portname, unsigned int speed)
 }
 
 
-#endif //SERIALPROJECT_SERIAL_H
+
+#endif //TEST_SERIAL_SERIAL_H

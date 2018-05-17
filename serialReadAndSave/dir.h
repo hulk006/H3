@@ -103,6 +103,84 @@ int CreatFile(const char *file_name,FILE *fp)
     }
 }
 /**
+ * @func 把14进制的device——id 转化为字符串
+ * @param
+ * @return
+ */
+int GetDeviceID(const unsigned char *input,char *out,int length)
+{
+    for (int i = 0; i < length; ++i) {
+        int high = 0x00;
+        int low = 0x00;
+        high = (input[i] & 0xf0) / 16;
+        low = input[i] & 0x0f;
+        if (high >= 0 && high < 16)
+        {
+            char tmp='0';
+            switch (high) {
+                case 10:
+                    tmp='A';
+                    break;
+                case 11:
+                    tmp='B';
+                    break;
+                case 12:
+                    tmp='C';
+                    break;
+                case 13:
+                    tmp='D';
+                    break;
+                case 14:
+                    tmp='E';
+                    break;
+                case 15:
+                    tmp='F';
+                    break;
+                default:
+                    tmp= high + '0';
+                    break;
+            }
+            out[2*i]=tmp;
+        }
+        else
+        {
+            printf("error,chang");
+            return -1;
+        }
+        if (low >= 0 && low < 16) {
+            char tmp='0';
+            switch (low) {
+                case 10:
+                    tmp='A';
+                    break;
+                case 11:
+                    tmp='B';
+                    break;
+                case 12:
+                    tmp='C';
+                    break;
+                case 13:
+                    tmp='D';
+                    break;
+                case 14:
+                    tmp='E';
+                    break;
+                case 15:
+                    tmp='F';
+                    break;
+                default:
+                    tmp= low + '0';
+                    break;
+            }
+            out[2*i+1]=tmp;
+        }
+        else {
+            printf("error,change");
+            return -1;
+        }
+    }
+}
+/**
  * @func 存储用户信息，wifi配置信息道文件中
  * @param input_tatus data定义道结构体
  * @return 0
@@ -129,14 +207,16 @@ int SaveHeadFile( struct Status const *input_tatus)
     fprintf(head_file,"{");
     fprintf(head_file,"\'userId\':\'%s\',",input_tatus->user_bind_info.user_id);
     fprintf(head_file,"\'bindState\':\'%d\',",input_tatus->user_bind_info.bind);
-    fprintf(head_file,"\'deviceId\':\'%s\',",input_tatus->device_info.name);
+    //fprintf(head_file,"\'deviceId\':\'%s\',",input_tatus->device_info.name);
+    char deviceId[12+1]={'0'};
+    GetDeviceID(input_tatus->device_info.mac_id,deviceId,6);
+    fprintf(head_file,"\'deviceId\':\'%s\',",deviceId);
+
     //TODO 设备登录道时候需要的变量
-    fprintf(head_file,"\'token\':\'111\',");
+    fprintf(head_file,"\'token\':\'aaaa\',");
 
     fprintf(head_file,"\'wifiName\':\'%s\',",input_tatus->net_config.SSID);
     fprintf(head_file,"\'wifiPassword\':\'%s\',",input_tatus->net_config.PWD);
-    //fprintf(head_file,"\'wifiName\':\'%s\',","YHtest");
-    //fprintf(head_file,"\'wifiPassword\':\'%s\',","qwertyuiop");
     fprintf(head_file,"}");
     //TODO
     fclose(head_file);
@@ -154,9 +234,9 @@ int SaveDataBlocksFile(const struct DataBlock *data_block,  char const *user_id)
 {
     //文件名以开始存储的时间命名，将一次读取道blocks数量存储进去，
     char filename[100] = {'\0'} ;
-    static int num_data_block = 0;//只初始化一次
-    static int num_N = 0;
-    num_data_block += data_block->n_data_block;//已经接收了多少个data block
+    int num_data_block = status.ndata_blocks;//只初始化一次
+    int num_N = 0;
+    //num_data_block += data_block->n_data_block;//已经接收了多少个data block
 
     /** 存数data block 的头文件*/
     if(num_data_block == 1)
@@ -183,24 +263,28 @@ int SaveDataBlocksFile(const struct DataBlock *data_block,  char const *user_id)
     }
     else //第二个block才是data block
     {
-        int n_block = (num_data_block  - 2);//第n个，从0 开始，代表第几个block，不包含头
+        int data_type = dynamic_data_header[status.ndata_blocks-2].type;
+        int data_length = dynamic_data_header[status.ndata_blocks-2].length;
+        if(data_type != 1||data_length <= 0)
+        {
+            return num_data_block;
+        }
+
+        int n_block = (status.ndata_blocks - 2);//第n个，从0 开始，代表第几个block，不包含头
         /**合并时间戳和data*/
         unsigned char time_buff[8]={0x00};
-        GetTimeCurrent(time_buff,8);
-        //GetTime(time_buff,n_block);
+        GetTime(time_buff,n_block);
 
-        unsigned char merge_buff[8+256*1024]={'\0'};
-        //merge_buff[0]='H'; merge_buff[1]='3';
+        unsigned char merge_buff[8 + 256*1024]={'\0'};
         for(int i=0;i<8;++i)
         {
             merge_buff[i]=time_buff[i];
         }
 
-        for(int i = 0;i<256*1024;++i)
+        for(int i = 0;i< data_length;++i)
         {
             merge_buff[i+8] = data_block->rec_buf[i+2];
         }
-
 
         num_N = n_block/N;//根据有多少个N倍数来命名文件
         /**定义文件名10个存成一个文件*/
@@ -221,7 +305,7 @@ int SaveDataBlocksFile(const struct DataBlock *data_block,  char const *user_id)
         assert(data_blocks_file != NULL);
         /**存储data block*/
         //TODO
-        fwrite(merge_buff, DATA_BLOCK_SIZE - 4 + 8,1,data_blocks_file);
+        fwrite(merge_buff, data_length + 8,1,data_blocks_file);
         //fwrite(data_block->rec_buf, DATA_BLOCK_SIZE,1,data_blocks_file);
         fclose(data_blocks_file);//关闭
         RecordADDRESS();//记录收到第几个block ，绝对地址 16进制，4字节，小端
