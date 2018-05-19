@@ -188,7 +188,6 @@ int GetDeviceID(const unsigned char *input,char *out,int length)
 int SaveHeadFile( struct Status const *input_tatus)
 {
     char user_dir[80]={'\0'};
-    printf("user:%s   1111",user_dir);
     MergeString2(user_dir, WORKING_DIR,input_tatus->user_bind_info.user_id);
     printf("current working directory: %s\n", user_dir);
     CreatDir(user_dir);
@@ -291,7 +290,7 @@ int SaveDataBlocksFile(const struct DataBlock *data_block,  char const *user_id)
         char num_string[10];
         //nu
         sprintf(num_string, "%d", ADDRESS * N);
-        const char *mode = "a+";//追加模式，如果不存在，就新建一个
+        const char *mode = "wb";//追加模式，如果不存在，就新建一个
         MergeString2(filename,WORKING_DIR,user_id);
         MergeString3(filename,"/data_blocks_file_",num_string,".bin");
         /**验证文件是否存在*/

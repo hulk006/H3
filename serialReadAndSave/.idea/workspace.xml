@@ -31,11 +31,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="protocol.h" pinned="false" current-in-tab="true">
+      <file leaf-file-name="protocol.h" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/protocol.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="327">
-              <caret line="612" column="0" lean-forward="true" selection-start-line="612" selection-start-column="0" selection-end-line="612" selection-end-column="0" />
+            <state relative-caret-position="488">
+              <caret line="613" column="26" lean-forward="true" selection-start-line="613" selection-start-column="26" selection-end-line="613" selection-end-column="26" />
               <folding>
                 <element signature="e#115#134#0" expanded="true" />
                 <element signature="e#784#1553#0" expanded="false" />
@@ -56,11 +56,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="dir.h" pinned="false" current-in-tab="false">
+      <file leaf-file-name="dir.h" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/dir.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="7015">
-              <caret line="305" column="25" lean-forward="false" selection-start-line="305" selection-start-column="25" selection-end-line="305" selection-end-column="25" />
+            <state relative-caret-position="572">
+              <caret line="201" column="33" lean-forward="true" selection-start-line="201" selection-start-column="33" selection-end-line="201" selection-end-column="33" />
               <folding>
                 <element signature="e#108#127#0" expanded="true" />
                 <element signature="e#1209#1485#0" expanded="false" />
@@ -97,7 +97,7 @@
         <entry file="file://$PROJECT_DIR$/config.h">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="276">
-              <caret line="12" column="29" lean-forward="true" selection-start-line="12" selection-start-column="29" selection-end-line="12" selection-end-column="29" />
+              <caret line="12" column="29" lean-forward="false" selection-start-line="12" selection-start-column="29" selection-end-line="12" selection-end-column="29" />
               <folding />
             </state>
           </provider>
@@ -116,8 +116,8 @@
       <file leaf-file-name="serial.h" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/serial.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="230">
-              <caret line="235" column="14" lean-forward="true" selection-start-line="235" selection-start-column="14" selection-end-line="235" selection-end-column="14" />
+            <state relative-caret-position="5405">
+              <caret line="235" column="14" lean-forward="false" selection-start-line="235" selection-start-column="14" selection-end-line="235" selection-end-column="14" />
               <folding>
                 <element signature="e#625#661#0" expanded="true" />
                 <element signature="e#1412#1991#0" expanded="false" />
@@ -136,14 +136,12 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>Send15Command</find>
       <find>exit</find>
       <find>save</find>
       <find>UART_DEVICE</find>
       <find>PWD</find>
       <find>set_key</find>
       <find>net_config</find>
-      <find>user_id</find>
       <find>open_port</find>
       <find>close</find>
       <find>SerialClose</find>
@@ -166,6 +164,8 @@
       <find>current</find>
       <find>host_name</find>
       <find>ConfigWIFI</find>
+      <find>mode</find>
+      <find>user_id</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -184,11 +184,11 @@
         <option value="$PROJECT_DIR$/serial_read_save.log" />
         <option value="$PROJECT_DIR$/data.h" />
         <option value="$PROJECT_DIR$/analyze_head.h" />
-        <option value="$PROJECT_DIR$/dir.h" />
         <option value="$PROJECT_DIR$/../read_data_block/main.cpp" />
         <option value="$PROJECT_DIR$/serial.h" />
         <option value="$PROJECT_DIR$/main.c" />
         <option value="$PROJECT_DIR$/protocol.h" />
+        <option value="$PROJECT_DIR$/dir.h" />
       </list>
     </option>
   </component>
@@ -391,11 +391,12 @@
       <workItem from="1526191235612" duration="35725000" />
       <workItem from="1526296173317" duration="10951000" />
       <workItem from="1526460763541" duration="4589000" />
+      <workItem from="1526645248555" duration="1052000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="544194000" />
+    <option name="totallyTimeSpent" value="545246000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -407,7 +408,8 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="65" y="-4" width="1855" height="1084" extended-state="6" />
+    <frame x="65" y="-4" width="737" height="612" extended-state="6" />
+    <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.40055403" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32738718" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -858,23 +860,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/dir.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="7015">
-          <caret line="305" column="25" lean-forward="false" selection-start-line="305" selection-start-column="25" selection-end-line="305" selection-end-column="25" />
-          <folding>
-            <element signature="e#108#127#0" expanded="true" />
-            <element signature="e#1209#1485#0" expanded="false" />
-            <element signature="e#1486#1760#0" expanded="false" />
-            <element signature="e#1762#2015#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/config.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="276">
-          <caret line="12" column="29" lean-forward="true" selection-start-line="12" selection-start-column="29" selection-end-line="12" selection-end-column="29" />
+          <caret line="12" column="29" lean-forward="false" selection-start-line="12" selection-start-column="29" selection-end-line="12" selection-end-column="29" />
           <folding />
         </state>
       </provider>
@@ -891,8 +880,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/serial.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="230">
-          <caret line="235" column="14" lean-forward="true" selection-start-line="235" selection-start-column="14" selection-end-line="235" selection-end-column="14" />
+        <state relative-caret-position="5405">
+          <caret line="235" column="14" lean-forward="false" selection-start-line="235" selection-start-column="14" selection-end-line="235" selection-end-column="14" />
           <folding>
             <element signature="e#625#661#0" expanded="true" />
             <element signature="e#1412#1991#0" expanded="false" />
@@ -908,8 +897,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/protocol.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="327">
-          <caret line="612" column="0" lean-forward="true" selection-start-line="612" selection-start-column="0" selection-end-line="612" selection-end-column="0" />
+        <state relative-caret-position="488">
+          <caret line="613" column="26" lean-forward="true" selection-start-line="613" selection-start-column="26" selection-end-line="613" selection-end-column="26" />
           <folding>
             <element signature="e#115#134#0" expanded="true" />
             <element signature="e#784#1553#0" expanded="false" />
@@ -925,6 +914,19 @@
             <element signature="e#15441#15987#0" expanded="false" />
             <element signature="e#16069#16167#0" expanded="true" />
             <element signature="e#20021#22410#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dir.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="572">
+          <caret line="201" column="33" lean-forward="true" selection-start-line="201" selection-start-column="33" selection-end-line="201" selection-end-column="33" />
+          <folding>
+            <element signature="e#108#127#0" expanded="true" />
+            <element signature="e#1209#1485#0" expanded="false" />
+            <element signature="e#1486#1760#0" expanded="false" />
+            <element signature="e#1762#2015#0" expanded="false" />
           </folding>
         </state>
       </provider>
