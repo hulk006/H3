@@ -30,7 +30,7 @@
 #define MAXSIZE 1024
 #define TRY "try again\n"
 #define WAIT_TIME_RECV 20//未收到应答到等待时间
-#define debug 1
+#define debug 0
 
 #if debug
 #define UART_DEVICE     "/dev/ttyS1"
@@ -295,7 +295,7 @@ int SerialReadDataBlock(const int fd,unsigned char * p,const int desire_get_len,
         int not_read_num=0;
         while (select(fd+1,&read_fds,NULL,NULL,&tv))
         {
-            Sleep(10);//ms
+            Sleep(5);//ms
             memset(read_temp,'\0', 2048);
             int nread = read(fd, read_temp, 2048);//一次最多读取22k字符
             if(nread == 0 || nread== -1)
@@ -316,10 +316,6 @@ int SerialReadDataBlock(const int fd,unsigned char * p,const int desire_get_len,
             }
 
         }
-        time_t t4;
-        t4 = time(NULL);
-        printf("\ncost time = %ds ",(int)(t4 - t1));
-
     }
     n_data++;
     time_t t3;

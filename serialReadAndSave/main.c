@@ -80,6 +80,7 @@ int main(int argc, char *argv[])
                 else //数据同步成功
                 {
                     printf("**************data read finished ,Closing serial,sleep(60)*****************\n");
+
                     sleep(60);
                     break;//退出循环
                 }
@@ -87,6 +88,7 @@ int main(int argc, char *argv[])
             else
             {
                 printf("no wifi connect or no H3 box is not ready！, sleep60 s\n");
+                system("echo \"0\" > /sys/class/leds/zbt-wr8305rt:green:wifi/brightness ");
                 sleep(60);
             }
         }

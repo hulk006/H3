@@ -390,6 +390,7 @@ bool Send15SyncFinishedCommand(const int fd)
     printf("*********************command 15：finished sync***********************************************");
     return true;
 }
+
 bool DeleteDataBloack(const int fd,int start,int end)
 {
     unsigned char command_15_buf[10]={'H','3',0x15,0x00,0xff,0xff,0xff,0x01,'5','A'};
@@ -418,8 +419,18 @@ int HandleAnswer14SysncData(const int fd)
     size_t rec_buf_size = sizeof(data_block.rec_buf);
     memset(data_block.rec_buf,'\0', sizeof(data_block.rec_buf));
     int read_result = SerialReadDataBlock(fd,data_block.rec_buf,rec_buf_size, WAIT_TIME_RECV);
-    printf("data block have %d Bytes\n", read_result);
+    //TODO***************************************************************
+    for (int i = 0; i < 100; ++i) {
+        printf("%x", data_block.rec_buf[i]);
+    }
+    printf("data block have %d Bytes?=", read_result);
+    if(status.ndata_blocks - 1 >0 )
+    {
+        read_result = 262148;
+    }
 
+    printf("should be %d\n", read_result);
+    //TODO***************************************************************
     if(read_result >= 0)
     {
         if(AnswerIsLegal(data_block.rec_buf,read_result))
@@ -463,6 +474,7 @@ int SyncDataProcess(const int fd, const char *working_dir)//心电盒子上传�
         int i = 0;
         while (true)//循环2：控制一次data block的发送，如果成功就ok，失败会重发3次，否则就失败
         {
+            GetLocalTime();
             //修改命令参数
             ++i;
             printf("ndata_blocks=%d ,ADDRESS=%d\n",status.ndata_blocks,ADDRESS+1);
@@ -674,6 +686,10 @@ int CheckWifiConnect(char *host_name)
                 return 1;
             }
         }
+        /***************************TODO****************************************************************/
+        printf("wifi problem!reboot!");
+        system("reboot");
+        /***********************************************************************************************/
         return 0; //failed
     }
     else//new wifi
