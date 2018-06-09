@@ -4,8 +4,9 @@
 #include "data_sruct.h"
 
 DYNAMIC_DATA_HEADER dynamic_data_header[1000]={'\0'};
-int DATA_NUMBER = 0;
 
+
+int DATA_NUMBER = 0;
 
 void Log()
 {
@@ -50,7 +51,7 @@ int Get_Dynamic_Data_Header(DYNAMIC_DATA_HEADER *dynamic_data_header_all)
     FILE* infile;
     char file_name[100]={'\0'};
     //MergeString3(file_name,WORKING_DIR,status.user_bind_info.user_id,"/data_blocks_file_head.HEAD");
-    infile = fopen("/home/yh/check_data/user_data/13800138000/data_blocks_file_head.HEAD", "rb");
+    infile = fopen("/home/yh/user_data/E9A794B15333/data_blocks_file_head.HEAD", "rb");
     if(infile == NULL )
     {
         printf("not exit/n");
@@ -86,19 +87,12 @@ uint32_t Get_Blocks_Address(int index)
 
 int main() {
 
-
-
-
-
-
-
-
-
+    setvbuf(stdout,NULL,_IONBF,0);
 
     printf ("This is printed to a file!\n");
     STATIC_DATA_BLOCK *data_block ;
     FILE *infile;
-    infile = fopen("/home/yh/check_data/user_data/13800138000/data_blocks_file_head.HEAD", "rb");
+    infile = fopen("/home/yh/user_data/E9A794B15333/data_blocks_file_head.HEAD", "rb");
     if(infile == NULL )
     {
         printf("not exit/n");
@@ -113,7 +107,8 @@ int main() {
     printf("%s\n",hw_ver);
     u_int16_t a = data_block->nand_block_num;
     printf("%d\n",a);
-    Get_Dynamic_Data_Header(dynamic_data_header);
+    DATA_NUMBER = Get_Dynamic_Data_Header(dynamic_data_header);
+    int number=DATA_NUMBER;
 
     for (int j = 0; j < DATA_NUMBER; ++j)
     {
@@ -121,24 +116,18 @@ int main() {
         uint8_t type = dynamic_data_header[j].type;
 
         printf("index=%d,address=%d type = %d,length = %d\n",j,address,type,dynamic_data_header[j].length);
+        long *time_stamp1;
+        time_stamp1= (long *)(dynamic_data_header[j].start_time);
+        uint32_t time2=0;
         for (int i = 0; i < 8; ++i)
         {
          printf("%x ",dynamic_data_header[j].start_time[i]);
+            time2 += dynamic_data_header[j].start_time[i]<<(8*i);
+
         }
         printf("\n");
 
     }
-
-
-    DYNAMIC_DATA_HEADER *dynamic_data_header_39;
-    dynamic_data_header_39 = GetDYNAMIC_DATA_HEADER(dynamic_data_header_39,1,read_buf);
-    int address = dynamic_data_header_39->start_addr;
-    DYNAMIC_DATA_HEADER *dynamic_data_header_1;
-    dynamic_data_header_1 = GetDYNAMIC_DATA_HEADER(dynamic_data_header_1,2,read_buf);
-
-    DYNAMIC_DATA_HEADER *dynamic_data_header_2;
-    dynamic_data_header_2 = GetDYNAMIC_DATA_HEADER(dynamic_data_header_2,3,read_buf);
-
 
 
 

@@ -21,12 +21,13 @@
 #define DATA_BLOCK_SIZE 262148
 #define NUM 1//一次发送几个block
 #define NUM_ONCE_BLOCKS 0x01
+#define ANSWER_15_LENGTH 8
 
 char WORKING_DIR[100] = {'\0'};
 char FRAME_HEAD[] = {'H','3'};
 char FRAME_TAIL[] = {'5','A'};
 //第一个命令
-//const char REUQEST_01_ISREADY[8]     = {'H','3','m','5','A'};//第一个命令：询问是否可以同步数据的指令
+
 const char REUQEST_01_ISREADY[8]     = {'H','3',0x01,0x00,0x00,0x00,'5','A'};//第一个命令：询问是否可以同步数据的指令
 const char REUQEST_10_NET_CONFIG[8]  = {'H','3',0x10,0x00,0x00,0x00,'5','A'};//第二个命令：请求读取盒子的网络配置的指令
 const char REUQEST_11_DEVICE_INFO[8]  = {'H','3',0x11,0x00,0x00,0x00,'5','A'};//第三个命令：请求读取盒子的设备信息的指令
@@ -34,15 +35,8 @@ const char REUQEST_12_USER_INFO[8]    = {'H','3',0x12,0x00,0x00,0x00,'5','A'};//
 //to change
 char REUQEST_13_SYNC_TIME[10]  = {'H','3',0x13,0x00,0x00,0x00,0x00,0x00,'5','A'};//第五个命令：请求同步时间
 
-char REUQEST_14_SYNC_DATA[10] = "";//第六个命令：请求同步离线数据,变化的
-char REUQEST_15_STATUS[10] = "";//第七个命令：询问盒子同步状态
 
-const char REQUEST_NULL[6]           = {'H','3',0x00,0x00,'5','A'};
-const char REQUEST_ERROR[6]          = {'H','3',0xFF,0xFF,'5','A'};
-
-
-int READ_NUMBER = 0;
-int N = 1;
-uint32_t ADDRESS = 0;//block address + 1
+const char REUQEST_16_SERVER_IP[8]    = {'H','3',0x16,0x00,0x00,0x00,'5','A'};//第四个命令：请求读取与盒子绑定用户信息的指令
+const char REUQEST_17_KEY[8]    = {'H','3',0x17,0x00,0x00,0x00,'5','A'};//第四个命令：请求读取与盒子绑定用户信息的指令
 
 #endif //SERIALREADANDSAVE_CONFIG_H

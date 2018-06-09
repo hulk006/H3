@@ -11,22 +11,17 @@
 #define SSID_LENGTH 32
 #define PWD_LENGTH 32
 #define DEVICE_NAME_LENGTH 14
-#define DEVICE_SN_LENGTH 12
+
 #define DEVICE_MACID_LENGTH 6
 #define USER_ID_LENGTH 12
-#define USER_NAME_LENGTH 16
-//// \r\n 不同的系统下不一样需要修改
 #define CHAR_STOP_BITS 0
 #define HEAD_DATA_BLOCK_SIZE 65540
-#define DATA_BLOCK_SIZE 262148
 #define NUM 1//一次发送几个block
-#define NUM_ONCE_BLOCKS 0x01
+
 
 char WORKING_DIR[100] = {'\0'};
 char FRAME_HEAD[] = {'H','3'};
 char FRAME_TAIL[] = {'5','A'};
-//第一个命令
-//const char REUQEST_01_ISREADY[8]     = {'H','3','m','5','A'};//第一个命令：询问是否可以同步数据的指令
 const char REUQEST_01_ISREADY[8]     = {'H','3',0x01,0x00,0x00,0x00,'5','A'};//第一个命令：询问是否可以同步数据的指令
 const char REUQEST_10_NET_CONFIG[8]  = {'H','3',0x10,0x00,0x00,0x00,'5','A'};//第二个命令：请求读取盒子的网络配置的指令
 const char REUQEST_11_DEVICE_INFO[8]  = {'H','3',0x11,0x00,0x00,0x00,'5','A'};//第三个命令：请求读取盒子的设备信息的指令
