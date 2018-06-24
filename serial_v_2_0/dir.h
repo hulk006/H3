@@ -42,71 +42,7 @@ float GetDirSize(const char* path)
 }
 
 
-/**
- * @func 把当前的时间转换成时间戳
- * @param
- */
-void GetTimeCurrent(unsigned char * time_buf,int length)
-{
-    struct timeval tv;
-    gettimeofday(&tv,NULL);
 
-    long int time = tv.tv_sec;
-    printf("%x\n",time);
-    unsigned char *p = (&time);
-    for (int i = 0; i < 4; ++i)
-    {
-        time_buf[i+4] = *(p+i);
-    }
-}
-
-/**
- * @func 修改文件的名称
- * @param old_name
- * @param new_name
- */
-void ChangeFileName(const char *old_name,const char *new_name)
-{
-    if (rename(old_name, new_name) == 0)
-        printf("已经把文件 %s 修改为 %s.\n", old_name, new_name);
-    else
-        perror("rename");
-    return ;
-}
-int CreatDir(char const  *pDir)
-{
-    int iRet;
-    if(NULL == pDir)
-    {
-        return 0;
-    }
-    iRet = ACCESS(pDir,0);//检查文件夹的存在性
-    if (iRet != 0) {
-        iRet = MKDIR(pDir);//建立目录
-        if (iRet != 0) {
-            return -1;
-        }
-    }
-    return iRet;
-}
-
-int CreatFile(const char *file_name,FILE *fp)
-{
-    const char *mode = "w+";
-    fp = fopen(file_name,mode);//"w" 写 如果文件存在，把文件截断至0长；如果文件不存在，会创建文件
-    if(fp != NULL)
-        return 1;
-    else
-    {
-        perror("CreatFile");
-        return -1;
-    }
-}
-/**
- * @func 把14进制的device——id 转化为字符串
- * @param
- * @return
- */
 int GetDeviceID(const unsigned char *input,char *out,int length)
 {
     for (int i = 0; i < length; ++i) {
@@ -210,11 +146,11 @@ int SaveConfigFile( struct Status const *input_tatus)
     GetDeviceID(input_tatus->device_info.mac_id,deviceId,6);
     fprintf(head_file,"\'deviceId\':\'%s\',",deviceId);
     //设备登录道时候需要的变量
-    fprintf(head_file,"\'token\':\'%s\',",input_tatus->secret_key);
-    fprintf(head_file,"\'env\':\'%s\',",input_tatus->server_ip);
+    fprintf(head_file,"\'token\':\'%s\',","aaaa");
 
     fprintf(head_file,"\'wifiName\':\'%s\',",input_tatus->net_config.SSID);
     fprintf(head_file,"\'wifiPassword\':\'%s\',",input_tatus->net_config.PWD);
+    fprintf(head_file,"\'env\':\'%s\',","staging");
     fprintf(head_file,"}");
     //TODO
     fclose(head_file);
@@ -328,8 +264,11 @@ void Log()
     FILE *copy;
     int bak_out = dup(1);// can use fileno(stdout) to replace 1
     printf ("OPEN LOG%d\n", bak_out);
-    //char *filename = "serial_read_save.log";
+#if debug
+    char *filename = "serial_read_save.log";
+#else
     char *filename = "/root/log/serial_read_save.log";
+#endif
     /**验证文件是否存在*/
     if (!access(filename,0) )
         printf("file %s  exist\n",filename);
@@ -354,7 +293,6 @@ int CheckWORKING_DIR()
     return 0;
 }
 
-
 void  CreateDataFile(char *filename)
 {
     if(creat(filename,0755)<0){
@@ -365,6 +303,22 @@ void  CreateDataFile(char *filename)
     }
 }
 
+int CreatDir(char const  *pDir)
+{
+    int iRet;
+    if(NULL == pDir)
+    {
+        return 0;
+    }
+    iRet = ACCESS(pDir,0);//检查文件夹的存在性
+    if (iRet != 0) {
+        iRet = MKDIR(pDir);//建立目录
+        if (iRet != 0) {
+            return -1;
+        }
+    }
+    return iRet;
+}
 
 
 #endif //SERIALPROJECT_DIR_H

@@ -5,6 +5,7 @@
 
 #ifndef SERIALPROJECT_PROTOCOL_H
 #define SERIALPROJECT_PROTOCOL_H
+
 #include <string.h>
 #include <strings.h>
 
@@ -633,15 +634,12 @@ bool ReadEcgDataBlock(const int fd)
 
        printf("have read %d ecg block,user_dir_size %1f MB\n",g_HAVE_READ_ECG_NUMBER,user_dir_size);
        printf("read %d\n",g_need_read_ecg_block_info[g_HAVE_READ_ECG_NUMBER].block_id + 1);
+
        if(user_dir_size > g_DIR_MAX_SIZE
           ||Send14ReadEcgCommand(fd,g_need_read_ecg_block_info[g_HAVE_READ_ECG_NUMBER].block_id + 1) == false)
        {
            printf("user_dir_size is big than %d\n",g_DIR_MAX_SIZE);
-           sleep(30);
-           if(CheckWifiConnect("www.baidu.com") > 0)//网络正常继续读取
-                continue;
-           else
-                return false;//网络不正常就报警
+           return false;//网络不正常就报警
        }
 
        int handle14 = HandleAnswer14ReadEcgData(fd);//串口读取心电数据
@@ -664,7 +662,7 @@ bool ReadEcgDataBlock(const int fd)
 
            else
            {
-               printf("hands shake failed");
+               printf("hands shake failed\n");
                return false;
            }
        }

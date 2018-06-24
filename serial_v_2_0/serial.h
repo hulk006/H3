@@ -22,14 +22,11 @@
 #include <string.h>
 #include <errno.h>
 
-
-
+#define align32 0
 #define MAXSIZE 1024
 #define WAIT_TIME_RECV 20//未收到应答到等待时间
-#define debug 1
 
-
-static struct termios newtios,oldtios; /*termianal settings */
+static struct termios newtios, oldtios; /*termianal settings */
 /**
  * @brief  设置串口的延时，单位为ms，串口通信的效率低下
  * @param  ms     类型 int  延时的时间
@@ -42,7 +39,6 @@ void Sleep(int ms)
     delay.tv_usec = ms * 1000; // 20 ms
     select(0, NULL, NULL, NULL, &delay);
 }
-
 
 /**
  * @brief  超时等待读取串口的内容
@@ -64,7 +60,7 @@ int SerialRead(const int fd,unsigned char p[],const int desire_get_len,const int
     puts("start serial select .......");
     if(select(fd+1,&read_fds,NULL,NULL,&tv))
     {
-        Sleep(200);
+        Sleep(5);
         nread = read(fd,p, desire_get_len);
         if(nread<=0)
         {
@@ -76,6 +72,7 @@ int SerialRead(const int fd,unsigned char p[],const int desire_get_len,const int
     {
         perror("select():time out");
     }
+
     if(nread>0)
     {
         printf("receive buf:");
@@ -239,8 +236,29 @@ int SerialReadEcgDataBlock(const int fd,unsigned char * p,const int desire_get_l
 */
 int SerialCommand(const int fd,const unsigned char *command,const int len)
 {
+#if align32
+    unsigned  char send_buff_len;
+    unsigned char send_buff[70];
+    for(send_buff_len = 0;send_buff_len < len;send_buff_len ++)
+    {
+        send_buff[send_buff_len] = command[send_buff_len];
+    }
+
+
+    if( send_buff_len < 32 )
+    {
+        for(;send_buff_len < 32;send_buff_len ++)
+            send_buff[send_buff_len] = 0x00;
+    }
+    else if(send_buff_len < 64)
+    {
+        for( ; send_buff_len < 64; send_buff_len ++)
+            send_buff[send_buff_len] = 0x00;
+    }
+#endif
+
     tcflush(fd, TCIOFLUSH);
-    int write_res = write(fd,command,len);//向串口写数据
+    int write_res = write(fd, command, len);//向串口写数据
     if (write_res == -1)
     {
         perror(" SerialCommand write error!");
@@ -311,6 +329,9 @@ int OpenPort(const char *portname, unsigned int speed)
             break;
         case 921600: cfsetospeed(&newtios,B921600);
             cfsetispeed(&newtios,B921600);
+            break;
+        case 1000000: cfsetospeed(&newtios,B1000000);
+            cfsetispeed(&newtios,B1000000);
             break;
         case 4000000: cfsetospeed(&newtios,B2000000);
             cfsetispeed(&newtios,B2000000);

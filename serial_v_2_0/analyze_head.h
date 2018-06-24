@@ -15,6 +15,9 @@
 int GetDynamicDataHeader(DYNAMIC_DATA_HEADER *dynamic_data_header_all)
 {
     memset(dynamic_data_header_all,0, 2048*sizeof(DYNAMIC_DATA_HEADER));
+    memset(g_origin_blocks_info,0, 2048*sizeof(BLOCK_INFO));
+    memset(g_need_read_ecg_block_info,0, 2048*sizeof(BLOCK_INFO));
+
     FILE* infile;
     char file_name[100]={'\0'};
     MergeString3(file_name,WORKING_DIR,g_status.device_info.device_num,"/data_blocks_file_head.HEAD");

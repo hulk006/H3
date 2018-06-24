@@ -5,15 +5,20 @@
 #ifndef SERIAL_V_2_0_INIT_H
 #define SERIAL_V_2_0_INIT_H
 
-#define LED_BRIGHTNESS "/root/led_control/led_bright.sh "
+#define LED_BRIGHTNESS "sh /root/led_control/led_bright.sh "
 #define LED_TWINKLE "sh /root/led_control/led_twinkle.sh"
 #define TIME_UPDATE "/etc/init.d/sysfixtime start"
+#define LED_CLOSE "echo 0 > /sys/class/leds/zbt-wr8305rt\\:green\\:wifi/brightness"
 /********************************GLOBAL DATA***************************************************************************************/
 /**
  * 自己定义的结构体的初始化
  */
 #include "data.h"
 #include "flash_head_data.h"
+
+
+#define debug 1
+
 
 /******************************************new global***************************************************/
 
@@ -80,6 +85,15 @@ void InitDataBlock()
 }
 void InitStatus()
 {
+
+
+    memset(dynamic_data_header,0, 2048*sizeof(DYNAMIC_DATA_HEADER));
+    memset(g_origin_blocks_info,0, 2048*sizeof(BLOCK_INFO));
+    memset(g_need_read_ecg_block_info,0, 2048*sizeof(BLOCK_INFO));
+    g_ALL_EFFECT_NUMBER    = 0;//2048中，有效的数据块 数量
+    g_NO_EFFECT_NUMBER     = 0;//2048中，无效的数据块 数量
+    g_NEED_READ_ECG_NUMBER = 0;//有效的数据块中，本次需要读取的数据块 数量
+    g_HAVE_READ_ECG_NUMBER = 0;
     InitDataBlock();
     g_status.state = 0;//
     g_status.time_sync_state = 0;//

@@ -96,5 +96,44 @@ bool CheckBaudeRate(const int speed)
     return false;
 }
 
+/**
+ * @func 把当前的时间转换成时间戳
+ * @param
+ */
+void GetTimeCurrent(unsigned char * time_buf,int length)
+{
+    struct timeval tv;
+    gettimeofday(&tv,NULL);
+
+    long int time = tv.tv_sec;
+    printf("%x\n",time);
+    unsigned char *p = (&time);
+    for (int i = 0; i < 4; ++i)
+    {
+        time_buf[i+4] = *(p+i);
+    }
+}
+
+/**
+ * @func 修改文件的名称
+ * @param old_name
+ * @param new_name
+ */
+
+
+int CreatFile(const char *file_name,FILE *fp)
+{
+    const char *mode = "w+";
+    fp = fopen(file_name,mode);//"w" 写 如果文件存在，把文件截断至0长；如果文件不存在，会创建文件
+    if(fp != NULL)
+        return 1;
+    else
+    {
+        perror("CreatFile");
+        return -1;
+    }
+}
+
+
 
 #endif //SERIAL_V_2_0_UTILS_H

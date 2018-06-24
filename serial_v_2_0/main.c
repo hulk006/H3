@@ -8,16 +8,16 @@
 #include "daemon.h"
 #define HOSTNAME "www.baidu.com"
 
-bool SerialReadSave()
+bool SerialReadSave(const int serial_handle)
 {
-    int serial_handle = OpenPort(g_UART_DEVICE,g_BAUDRATE);
-    if(serial_handle<0) return false;
-
     InitStatus();
     GetLocalTime();
+    tcflush(serial_handle, TCIOFLUSH);
     SerialCommand(serial_handle, REUQEST_01_ISREADY, 8);
     if(HandleAnswer01Isready(serial_handle,5))//发现串口，每隔30查看一次串口
+    //if(1)
     {
+        tcflush(serial_handle, TCIOFLUSH);
         SerialCommand(serial_handle, REUQEST_10_NET_CONFIG, 8);
         if (!HandleAnswer10NetConfig(serial_handle, 68)) return false;
 
@@ -36,13 +36,13 @@ bool SerialReadSave()
         system(TIME_UPDATE);//time update
         printf("update time,wait 2s\n");
         sleep(1);//s
-
+        /*
         SerialCommand(serial_handle, REUQEST_16_SERVER_IP, 8);
         if(!HandleAnswer16ServerIP(serial_handle,5)) return false;
 
         SerialCommand(serial_handle, REUQEST_17_KEY, 8);
         if(!HandleAnswer17Key(serial_handle,20)) return false;
-
+        */
 
         GetLocalTime();
         Send13Command(serial_handle);
@@ -58,15 +58,30 @@ bool SerialReadSave()
             bool read_ecg_result = ReadEcgDataBlock(serial_handle);
             if (read_ecg_result)
             {
-                close(serial_handle);
+                //close(serial_handle);
                 printf("read finish\n");
+                return true;
             }
             else
             {
-                //异常报警
-                return false;
+                return false; //异常报警
             }
         }
+        else if(g_NEED_READ_ECG_NUMBER == 0)
+        {
+            printf("no dat need read");
+            //system(LED_CLOSE);
+            return true;
+        }
+        else
+        {
+            return false;//异常报警
+        }
+    }
+    else
+    {
+        printf("no box in H3-base");
+        return false;//异常报警
     }
 }
 
@@ -84,7 +99,9 @@ int main(int argc, char *argv[])
     if(atoi(argv[1])>0)
     {
         printf("argv[1]= %s,log on \n",argv[1]);
+        init_daemon();//初始化为Daemon
         Log();
+
     }
     if (argv[2])
     {
@@ -97,19 +114,32 @@ int main(int argc, char *argv[])
         g_BAUDRATE = atoi(argv[3]);
     }
     CheckWORKING_DIR();
-
     while (1)
     {
-        if(!SerialReadSave())
+        int serial_handle = OpenPort(g_UART_DEVICE,g_BAUDRATE);
+        if(serial_handle<0)
         {
-            printf("##############warning##################");
             system(LED_TWINKLE);
-            sleep(120);
+            sleep(60);
+            continue;
         }
-        else
+
+        while (1)
         {
-            sleep(120);
+            if(!SerialReadSave(serial_handle))//读取失败
+            {
+                printf("##############warning##################");
+                system(LED_TWINKLE);
+                sleep(120);
+            }
+            else//读取成功或者没有数据
+            {
+                sleep(120);
+            }
         }
+        close(serial_handle);
+        sleep(60);
     }
+
     return 0;
 }

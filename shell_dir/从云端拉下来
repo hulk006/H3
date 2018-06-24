@@ -1,0 +1,3 @@
+sliic
+pw4test:
+ scp -r sliic@10.120.112.72:/s3data/thisisausercreatbyyanghao/201805111334 check_data
